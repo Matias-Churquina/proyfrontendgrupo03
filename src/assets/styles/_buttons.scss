@@ -45,3 +45,16 @@
     color:white;
 
 }
+
+.btn-outline-primary {
+  color: $primary;
+  border: 1px solid $primary;
+  background-color: transparent;
+  transition: $transition;
+}
+
+.btn-outline-primary:hover {
+  background-color: $primary;
+  color: white;
+  transform: translateY(-2px);
+}
