@@ -1,1 +1,11 @@
-/* You can add global styles to this file, and also import other style files */
+@use './assets/styles/variables';
+@use './assets/styles/mixins';
+@use './assets/styles/utilities';
+@use './assets/styles/buttons';
+@use './assets/styles/cards';
+@use './assets/styles/forms';
+@use './assets/styles/tables';
+@use './assets/styles/navbar';
+@use './assets/styles/sidebar';
+@use './assets/styles/animations';
+@use './assets/styles/responsive';/* You can add global styles to this file, and also import other style files */
