@@ -58,3 +58,16 @@
   color: white;
   transform: translateY(-2px);
 }
+
+.nav-pills .nav-link.active, 
+.nav-pills .show > .nav-link {
+  background-color: $primary !important;
+  color: #ffffff !important;
+}
+
+.nav-pills .nav-link {
+  color: $secondary;
+  background-color: $light;
+  border: 1px solid transparent;
+}
+

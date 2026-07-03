@@ -1,0 +1,128 @@
+<main class="container my-5 fade-in d-flex justify-content-center align-items-center" style="min-height: 80vh;">
+  <div class="col-12 col-md-8 col-lg-6">
+    
+    <div class="text-center mb-4">
+      <a routerLink="/" class="text-decoration-none d-inline-flex align-items-center gap-2 mb-3 hover-scale transition">
+        <i class="bi bi-geo-alt-fill fs-3 text-primary"></i>
+        <span class="fw-bold text-dark fs-4">Perico-Perico</span>
+      </a>
+      <h2 class="fw-bold text-dark">Crear una cuenta</h2>
+      <p class="text-muted">Únete a la red de remises más grande de la ciudad</p>
+    </div>
+
+    <div class="card card-custom bg-white p-4 p-lg-5">
+      
+      <ul class="nav nav-pills nav-fill mb-4 gap-2">
+        <li class="nav-item">
+          <button type="button" class="nav-link fw-bold rounded-custom transition" 
+                  [class.active]="rolSeleccionado === 'PASAJERO'"
+                  (click)="cambiarRol('PASAJERO')">
+            <i class="bi bi-person-fill me-2"></i>Pasajero
+          </button>
+        </li>
+        <li class="nav-item">
+          <button type="button" class="nav-link fw-bold rounded-custom transition" 
+                  [class.active]="rolSeleccionado === 'CHOFER'"
+                  (click)="cambiarRol('CHOFER')">
+            <i class="bi bi-car-front-fill me-2"></i>Conductor
+          </button>
+        </li>
+      </ul>
+
+      <form [formGroup]="registroForm" (ngSubmit)="registrarUsuario()">
+        <div class="row g-3">
+          
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-dark small">Nombre</label>
+            <input type="text" class="form-control py-2" placeholder="Ej: Juan" formControlName="nombre">
+          </div>
+          
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-dark small">Apellido</label>
+            <input type="text" class="form-control py-2" placeholder="Ej: Pérez" formControlName="apellido">
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold text-dark small">Correo Electrónico</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope text-muted"></i></span>
+              <input type="email" class="form-control border-start-0 py-2 ps-0" placeholder="juan@ejemplo.com" formControlName="email">
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-dark small">Teléfono</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-telephone text-muted"></i></span>
+              <input type="tel" class="form-control border-start-0 py-2 ps-0" placeholder="388..." formControlName="telefono">
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label fw-semibold text-dark small">Contraseña</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock text-muted"></i></span>
+              <input type="password" class="form-control border-start-0 py-2 ps-0" placeholder="********" formControlName="passwordHash">
+            </div>
+          </div>
+
+          @if (rolSeleccionado === 'CHOFER') {
+            <div class="col-12 pt-3 mt-1 border-top fade-in">
+              <div class="row g-3">
+                <div class="col-12">
+                  <span class="badge bg-warning text-dark mb-2"><i class="bi bi-info-circle me-1"></i> Requisitos de Conductor</span>
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold text-dark small">N° Licencia de Conducir</label>
+                  <input type="text" class="form-control py-2" placeholder="Número de carnet" formControlName="licenciaConducir">
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold text-dark small">Fecha de Habilitación</label>
+                  <input type="date" class="form-control py-2" formControlName="fechaHabilitacion">
+                </div>
+              </div>
+            </div>
+          }
+          @if (mensajeError) {
+              <div class="col-12 mt-3 fade-in">
+                <div class="alert alert-danger d-flex align-items-center mb-0 border-0 shadow-sm" role="alert">
+                  <i class="bi bi-exclamation-triangle-fill fs-5 me-3"></i>
+                  <div>
+                    <strong>¡Atención!</strong> {{ mensajeError }}
+                  </div>
+                </div>
+              </div>
+            }
+          @if (mensajeExito) {
+            <div class="col-12 mt-3 fade-in">
+              <div class="alert alert-success d-flex align-items-center mb-0 border-0 shadow-sm" role="alert">
+                <i class="bi bi-check-circle-fill fs-5 me-3"></i>
+                <div>
+                  <strong>¡Excelente!</strong> {{ mensajeExito }}
+                </div>
+              </div>
+            </div>
+          }
+
+          <div class="col-12 mt-4">
+            <button type="submit" class="btn btn-custom btn-primary-custom w-100 py-3 fw-bold fs-6 shadow-sm hover-scale" [disabled]="cargando || registroForm.invalid">
+              @if (cargando) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Procesando...
+              } @else {
+                Registrarme como {{ rolSeleccionado === 'CHOFER' ? 'Conductor' : 'Pasajero' }}
+              }
+            </button>
+          </div>
+
+          <div class="col-12 text-center mt-3">
+            <p class="text-muted small">¿Ya tienes una cuenta? <a routerLink="/login" class="text-primary fw-bold text-decoration-none">Inicia sesión aquí</a></p>
+          </div>
+
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
