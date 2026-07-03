@@ -34,8 +34,8 @@
           </div>
 
           <div class="mt-auto">
-            <button routerLink="/registro-pasajero" class="btn btn-custom btn-outline-primary w-100 py-3 fw-bold hover-scale d-flex justify-content-center align-items-center gap-2">
-              Registrarme como Pasajero <i class="bi bi-arrow-right"></i>
+            <button class="btn btn-custom btn-outline-primary w-100 py-3 fw-bold hover-scale d-flex justify-content-center align-items-center gap-2" [routerLink]="['/registro']" [queryParams]="{ tipo: 'pasajero' }">
+              Registrarme<i class="bi bi-arrow-right"></i>
             </button>
           </div>
         </div>
@@ -70,8 +70,8 @@
           </div>
 
           <div class="mt-auto d-flex flex-column flex-xl-row gap-3">
-            <button routerLink="/registro-chofer" class="btn btn-custom btn-light text-primary w-100 py-3 fw-bold shadow-custom hover-scale d-flex justify-content-center align-items-center gap-2">
-              Ser Conductor <i class="bi bi-arrow-right"></i>
+            <button [routerLink]="['/registro']" [queryParams]="{ tipo: 'chofer' }" class="btn btn-custom btn-light text-primary w-100 py-3 fw-bold shadow-custom hover-scale d-flex justify-content-center align-items-center gap-2">
+              Registrarme<i class="bi bi-arrow-right"></i>
             </button>
             <button class="btn btn-custom btn-outline-light w-100 py-3 fw-bold hover-scale">
               Ver requisitos
