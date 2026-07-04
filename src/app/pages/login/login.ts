@@ -51,8 +51,8 @@ export class Login {
             this.mensajeExito = 'Inicio de sesión exitoso. Redirigiendo a la página de chofer...';
             this.cdr.detectChanges();
             setTimeout(() => {
-              this.router.navigate(['/login']);
-            }, 3000);
+              this.router.navigate(['/chofer']);
+            }, 1000);
           } else if (res.rol === 'PASAJERO') {
             this.mensajeExito = 'Inicio de sesión exitoso. Redirigiendo a la página de pasajero...';
             this.cdr.detectChanges();

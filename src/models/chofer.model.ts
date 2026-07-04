@@ -1,6 +1,6 @@
 import { Usuario } from './usuario.model';
 
-export interface Chofer {
+export interface ChoferModel {
   idChofer: number;
   idUsuario: number;
   licenciaConducir: string;
