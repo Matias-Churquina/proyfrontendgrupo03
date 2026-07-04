@@ -47,7 +47,7 @@
               type="button"
               class="btn btn-primary-custom w-100 py-2"
               (click)="crearNuevoViaje()"
-              [disabled]="nuevoOrigen === nuevoDestino || !autoAsignado"
+              [disabled]="!puedeCrearViaje"
             >
               <i class="bi bi-plus-circle me-2"></i>
               Crear Nuevo Viaje
@@ -114,37 +114,34 @@
 
           <div class="border-top pt-3 mb-4">
             <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="mb-0 fw-semibold">
-                    <i class="bi bi-people me-2"></i>
-                    Asientos disponibles
-                </h6>
-                <small class="text-muted">
-                    {{ viajeActual.asientosDisponibles }} de 4 
-                </small>
+              <h6 class="mb-0 fw-semibold">
+                <i class="bi bi-people me-2"></i>
+                Asientos
+              </h6>
+              <small class="text-muted">
+                {{ viajeActual.asientosDisponibles }}/4 disponibles
+              </small>
             </div>
+
             <div class="d-flex gap-2">
-                <button
-                  *ngFor="let asiento of asientos; let i = index"
-                  class="btn btn-sm"
-                  [class.btn-primary]="i < (4 - viajeActual.asientosDisponibles)"
-                  [class.btn-outline-secondary]="i >= (4 - viajeActual.asientosDisponibles)"
-                  disabled>
-                  {{ i + 1 }}
-                </button>
+              <button
+                *ngFor="let asiento of asientos; let i = index"
+                type="button"
+                class="btn btn-sm"
+                [class.btn-primary]="i < (4 - viajeActual.asientosDisponibles)"
+                [class.btn-outline-secondary]="i >= (4 - viajeActual.asientosDisponibles)"
+                [disabled]="i < (4 - viajeActual.asientosDisponibles)"
+                (click)="abrirModalAgregarPasajero()">
+
+                <i
+                  class="bi"
+                  [class.bi-person-fill]="i < (4 - viajeActual.asientosDisponibles)"
+                  [class.bi-plus-lg]="i >= (4 - viajeActual.asientosDisponibles)">
+                </i>
+
+              </button>
             </div>
-
-            <button
-                class="btn btn-outline-primary btn-sm mt-3 w-100"
-                (click)="agregarPasajeroManual()"
-                [disabled]="viajeActual.asientosDisponibles === 0">
-
-                <i class="bi bi-person-plus me-2"></i>
-
-                Agregar pasajero sin App
-
-            </button>
-
-        </div>
+          </div>
 
           <div class="driver-actions d-grid gap-3 pt-3 border-top">
             <button
@@ -170,7 +167,7 @@
 
         <ng-template #sinViaje>
           <div class="card-body px-3 px-md-4 py-4 text-center text-secondary">
-            No tenés un viaje actual.
+            No tenés ningún viaje actualmente. 
           </div>
         </ng-template>
       </article>
@@ -266,4 +263,43 @@
       </ng-template>
     </div>
   </article>
+
+  <div class="modal fade" id="modalAgregarPasajero" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-person-plus-fill me-2"></i>
+            Agregar pasajero
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="mb-2">
+            ¿Desea registrar un pasajero sin utilizar la aplicación?
+          </p>
+
+          <div class="alert alert-warning mb-0">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            Se ocupará un asiento disponible y esta acción no podrá deshacerse.
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+            Cancelar
+          </button>
+
+          <button class="btn btn-primary" (click)="confirmarAgregarPasajero()">
+            <i class="bi bi-check-lg me-2"></i>
+            Agregar pasajero
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
 </section>
+
