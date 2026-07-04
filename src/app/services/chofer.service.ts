@@ -51,7 +51,9 @@ export class ChoferService {
     });
   }
 
-  agregarPasajeroManual(idViaje: number): Observable<Viaje> {
-    return this._http.post<Viaje>(`${this.baseUrl}/viajes/${idViaje}/agregar-asiento`, {});
+  actualizarAsientosDisponibles(idViaje: number, asientosDisponibles: number): Observable<Viaje> {
+    return this._http.post<Viaje>(`${this.baseUrl}/viajes/${idViaje}/actualizar-asientos-disponibles`, {
+      asientosDisponibles
+    });
   }
 }

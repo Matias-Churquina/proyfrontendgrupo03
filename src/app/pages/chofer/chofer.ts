@@ -5,6 +5,7 @@ import { ChoferService, CrearViajeDto } from '../../services/chofer.service';
 import { ChoferModel } from '../../../models/chofer.model';
 import { Auto } from '../../../models/auto.model';
 import { Viaje } from '../../../models/viaje.model';
+import * as bootstrap from 'bootstrap';
 
 type AutoBack = Auto & {
   estado?: 'DISPONIBLE' | 'EN_VIAJE' | 'EN_TALLER' | 'INACTIVO';
@@ -38,6 +39,8 @@ export class Chofer {
   public nuevoDestino = 'Perico';
 
   public idChofer = Number(localStorage.getItem('idChofer')) || 1;
+
+  private modalAgregarPasajero!: bootstrap.Modal;
 
   constructor(
     private _choferService: ChoferService,
@@ -110,6 +113,13 @@ export class Chofer {
     });
   }
 
+  get puedeCrearViaje(): boolean {
+    return (
+      this.autoAsignado !== undefined &&
+      this.nuevoOrigen !== this.nuevoDestino &&
+      !this.viajeActual
+    );
+  }
   crearNuevoViaje(): void {
     if (!this.autoAsignado) {
       console.error('No hay auto asignado para crear el viaje');
@@ -169,16 +179,67 @@ export class Chofer {
   }
 
   agregarPasajeroManual(): void {
-    if (!this.viajeActual) return;
+    if (!this.viajeActual || this.viajeActual.asientosDisponibles <= 0) {
+      console.error('No hay asientos disponibles para agregar pasajero');
+      return;
+    }
 
-    this._choferService.agregarPasajeroManual(this.viajeActual.idViaje).subscribe({
-      next: (viajeActualizado) => {
-        this.viajeActual = viajeActualizado;
+    const nuevosAsientos = this.viajeActual.asientosDisponibles - 1;
+
+    this._choferService.actualizarAsientosDisponibles(
+      this.viajeActual.idViaje,
+      nuevosAsientos
+    ).subscribe({
+      next: (response: any) => {
+        this.viajeActual = response.viaje || response;
         this._changeDetectorRef.detectChanges();
         console.log('Asiento agregado, viaje actualizado:', this.viajeActual);
       },
       error: (err) => {
         console.error('Error al agregar pasajero:', err);
+      }
+    });
+  }
+
+  ngAfterViewInit(): void {
+    const modal = document.getElementById('modalAgregarPasajero');
+
+    if (modal) {
+      this.modalAgregarPasajero = new bootstrap.Modal(modal);
+    }
+  }
+
+  abrirModalAgregarPasajero(): void {
+    if (!this.viajeActual) {
+      console.error('No hay viaje actual para agregar pasajero');
+      return;
+    }
+
+    if (this.viajeActual.asientosDisponibles > 0) {
+      this.modalAgregarPasajero.show();
+    } else {
+      console.error('No hay asientos disponibles para agregar pasajero');
+    }
+  }
+
+  confirmarAgregarPasajero(): void {
+    if (!this.viajeActual || this.viajeActual.asientosDisponibles <= 0) {
+      return;
+    }
+
+    const nuevosAsientos = this.viajeActual.asientosDisponibles - 1;
+
+    this._choferService.actualizarAsientosDisponibles(
+      this.viajeActual.idViaje,
+      nuevosAsientos
+    ).subscribe({
+      next: (response: any) => {
+        this.loadViajes();
+        (document.activeElement as HTMLElement)?.blur();
+        this.modalAgregarPasajero.hide();
+      },
+      error: err => {
+        console.error(err);
       }
     });
   }
