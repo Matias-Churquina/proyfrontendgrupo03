@@ -1,0 +1,100 @@
+<section class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2>Panel del chofer</h2>
+      <p class="text-muted mb-0">
+        Bienvenido {{ usuario?.nombre }} {{ usuario?.apellido }}
+      </p>
+    </div>
+
+    <button class="btn btn-outline-danger" type="button" (click)="cerrarSesion()">
+      Cerrar sesion
+    </button>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5>Estado del chofer</h5>
+      <p class="mb-1"><strong>Email:</strong> {{ usuario?.email }}</p>
+      <p class="mb-1"><strong>Rol:</strong> {{ usuario?.rol }}</p>
+      <p class="mb-0"><strong>Estado:</strong> {{ usuario?.estadoChofer }}</p>
+    </div>
+  </div>
+
+  <button
+    class="btn btn-primary mb-3"
+    type="button"
+    [disabled]="cargando"
+    (click)="enviarUbicacion()"
+  >
+    @if (cargando) {
+      Enviando ubicacion...
+    } @else {
+      Enviar mi ubicacion actual
+    }
+  </button>
+
+  <div class="card shadow-sm mb-3">
+    <div class="card-body">
+      <h5>Corregir ubicacion manualmente</h5>
+      <p class="text-muted">
+        Use esta opcion si el navegador devuelve una ubicacion incorrecta.
+      </p>
+
+      <div class="row g-3 align-items-end">
+        <div class="col-12 col-md-5">
+          <label for="latitudManual" class="form-label">Latitud</label>
+          <input
+            id="latitudManual"
+            type="number"
+            class="form-control"
+            [(ngModel)]="latitudManual"
+            step="0.000001"
+          >
+        </div>
+
+        <div class="col-12 col-md-5">
+          <label for="longitudManual" class="form-label">Longitud</label>
+          <input
+            id="longitudManual"
+            type="number"
+            class="form-control"
+            [(ngModel)]="longitudManual"
+            step="0.000001"
+          >
+        </div>
+
+        <div class="col-12 col-md-2">
+          <button
+            class="btn btn-outline-primary w-100"
+            type="button"
+            [disabled]="cargando"
+            (click)="enviarUbicacionManual()"
+          >
+            Usar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  @if (mensaje) {
+    <div class="alert alert-success">
+      {{ mensaje }}
+    </div>
+  }
+
+  @if (error) {
+    <div class="alert alert-danger">
+      {{ error }}
+    </div>
+  }
+
+  <app-mapa-ubicacion
+    titulo="Mi ubicacion actual"
+    [latitud]="latitud"
+    [longitud]="longitud"
+    [precision]="precision"
+  >
+  </app-mapa-ubicacion>
+</section>

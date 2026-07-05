@@ -1,0 +1,53 @@
+<div class="card shadow-sm">
+  <div class="card-body">
+    <h5 class="card-title">{{ titulo }}</h5>
+
+    @if (tieneUbicacion) {
+      <div class="mapas-google" [class.mapa-unico]="puntosGoogleMaps.length === 1">
+        @for (punto of puntosGoogleMaps; track $index) {
+          <div class="mapa-google-item">
+            @if (puntosGoogleMaps.length > 1) {
+              <div class="mb-2">
+                <strong>{{ punto.titulo || 'Chofer' }}</strong>
+                @if (punto.detalle) {
+                  <span class="text-muted"> {{ punto.detalle }}</span>
+                }
+              </div>
+            }
+
+            <div class="mapa-frame mb-2">
+              <iframe
+                title="Mapa de Google Maps"
+                [src]="punto.url"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade">
+              </iframe>
+            </div>
+
+            <p class="mb-1">
+              <strong>Latitud:</strong> {{ punto.latitud }}
+            </p>
+
+            <p class="mb-1">
+              <strong>Longitud:</strong> {{ punto.longitud }}
+            </p>
+
+            @if (punto.precision !== undefined) {
+              <p class="mb-1">
+                <strong>Precision:</strong> {{ punto.precision }} metros
+              </p>
+            }
+
+            <a class="btn btn-outline-primary btn-sm" [href]="punto.link" target="_blank" rel="noopener">
+              Abrir en Google Maps
+            </a>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="text-muted mb-0">
+        Todavia no hay ubicacion disponible.
+      </p>
+    }
+  </div>
+</div>

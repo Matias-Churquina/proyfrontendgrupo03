@@ -1,41 +1,46 @@
-import { Service } from '@angular/core';
-import { inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
+import { API_URL } from '../config/api.config';
+import type { Admin } from '../../models/admin.model';
+import type { Chofer } from '../../models/chofer.model';
+import type { Pasajero } from '../../models/pasajero.model';
+import type { Usuario } from '../../models/usuario.model';
 
 export interface LoginPayload {
   email: string;
   password: string;
 }
 
-@Service()
+export type LoginRequest = LoginPayload;
+
+export interface LoginResponse {
+  status: 0 | 1;
+  msg: string;
+  rol?: Usuario['rol'];
+  idUsuario?: number;
+  idChofer?: number;
+  idPasajero?: number;
+  idAdmin?: number;
+  nombre?: string;
+  apellido?: string;
+  email?: string;
+  estadoChofer?: Chofer['estadoChofer'];
+  estadoPasajero?: Pasajero['estadoPasajero'];
+  estadoAdmin?: Admin['estadoAdmin'];
+  token?: string;
+  error?: string;
+}
+
+@Injectable({
+  providedIn: 'root',
+})
 export class LoginService {
-    private http = inject(HttpClient);
-  private router = inject(Router);
-  
-  private apiUrl = 'http://localhost:3000/api/usuarios';
+  private readonly apiUrl = `${API_URL}/usuarios/login`;
 
-  login(credenciales: LoginPayload): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, credenciales);
-  }
+  constructor(private http: HttpClient) {}
 
-  guardarSesion(usuarioData: any): void {
-    sessionStorage.setItem('usuario_perico', JSON.stringify(usuarioData));
-  }
-
-  logout(): void {
-    sessionStorage.removeItem('usuario_perico');
-    this.router.navigate(['/Home']); // cierra sesión y redirige al Home
-  }
-
-  userLoggedIn(): boolean {
-    const usuario = sessionStorage.getItem('usuario_perico');
-    return usuario !== null;
-  }
-
-  getUserData(): any {
-    const usuario = sessionStorage.getItem('usuario_perico');
-    return usuario ? JSON.parse(usuario) : null;
+  login(credenciales: LoginRequest): Observable<LoginResponse> {
+    return this.http.post<LoginResponse>(this.apiUrl, credenciales);
   }
 }

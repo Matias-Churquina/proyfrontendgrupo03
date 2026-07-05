@@ -1,0 +1,114 @@
+<section class="container my-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2>Panel del pasajero</h2>
+      <p class="text-muted mb-0">
+        Bienvenido {{ usuario?.nombre }} {{ usuario?.apellido }}
+      </p>
+    </div>
+
+    <button class="btn btn-outline-danger" type="button" (click)="cerrarSesion()">
+      Cerrar sesion
+    </button>
+  </div>
+
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5>Datos del pasajero</h5>
+      <p class="mb-1"><strong>Email:</strong> {{ usuario?.email }}</p>
+      <p class="mb-1"><strong>Rol:</strong> {{ usuario?.rol }}</p>
+      <p class="mb-0"><strong>Estado:</strong> {{ usuario?.estadoPasajero }}</p>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5>Viajes disponibles</h5>
+          <p class="text-muted">
+            Buscar viajes abiertos para reservar asiento.
+          </p>
+          <button class="btn btn-primary" type="button" (click)="irAViajes()">
+            Ver viajes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5>Mis reservas</h5>
+          <p class="text-muted">
+            Consultar, cancelar o revisar reservas realizadas.
+          </p>
+          <button class="btn btn-outline-primary" type="button" (click)="irAReservas()">
+            Ver reservas
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+      <div class="card h-100 shadow-sm">
+        <div class="card-body">
+          <h5>Seguimiento</h5>
+          <p class="text-muted">
+            Ver todos los choferes que estan compartiendo ubicacion.
+          </p>
+          <a class="btn btn-outline-secondary" href="#seguimientoChofer" (click)="mostrarMapa()">
+            Ver mapa
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="seguimientoChofer" class="card shadow-sm mb-4">
+    <div class="card-body">
+      <div class="d-flex flex-column flex-md-row justify-content-between gap-3">
+        <div>
+          <h5>Choferes compartiendo ubicacion</h5>
+          <p class="text-muted mb-0">
+            El mapa muestra automaticamente los choferes que ya enviaron su ubicacion.
+          </p>
+        </div>
+
+        <button
+          class="btn btn-primary"
+          type="button"
+          [disabled]="cargandoUbicacion"
+          (click)="mostrarMapa()"
+        >
+          @if (cargandoUbicacion) {
+            Actualizando...
+          } @else {
+            Actualizar mapa
+          }
+        </button>
+      </div>
+
+      @if (mensajeUbicacion) {
+        <div class="alert alert-success mt-3">
+          {{ mensajeUbicacion }}
+        </div>
+      }
+
+      @if (errorUbicacion) {
+        <div class="alert alert-danger mt-3">
+          {{ errorUbicacion }}
+        </div>
+      }
+    </div>
+  </div>
+
+  @if (mostrarMapaChoferes) {
+
+    <app-mapa-ubicacion
+      titulo="Ubicacion de choferes disponibles"
+      [ubicacionesChoferes]="ubicacionesChoferes"
+    >
+    </app-mapa-ubicacion>
+  }
+</section>
