@@ -55,6 +55,7 @@ export class Login implements OnInit {
           this.cdr.detectChanges();
           return;
         }
+        
         this.procesarLoginExitoso(res);
       },
       error: (err) => {
@@ -69,34 +70,30 @@ export class Login implements OnInit {
   private loadGoogleScript(): void {
     const google = (window as any).google;
 
-    // Si el script de Google ya existe en la ventana global de la pestaña, lo inicializamos de inmediato
     if (google?.accounts?.id) {
       this.inicializarGoogleId();
     } else {
-      // Si es la primera vez que entra a la app, creamos el elemento script
       if (!document.getElementById('google-gsi-script')) {
         const script = document.createElement('script');
         script.id = 'google-gsi-script';
         script.src = 'https://accounts.google.com/gsi/client';
         script.async = true;
         script.defer = true;
-        // Cuando termine de descargarse e instalarse, ejecutamos la inicialización
         script.onload = () => this.inicializarGoogleId();
         document.head.appendChild(script);
       }
     }
   }
+
   private inicializarGoogleId(): void {
     const google = (window as any).google;
     if (google) {
-      // 1. Vinculamos las credenciales y el callback
       google.accounts.id.initialize({
         client_id: '188387660446-6jqedllhbsmn42rh2uelnd3dvfpe7c8i.apps.googleusercontent.com',
         callback: this.handleCredentialResponse.bind(this),
         context: 'signin'
       });
 
-      // 2. Renderizamos el botón explícitamente en el elemento contenedor del HTML
       const contenedorBoton = document.getElementById('contenedorBotonGoogle');
       if (contenedorBoton) {
         google.accounts.id.renderButton(contenedorBoton, {
@@ -154,6 +151,7 @@ export class Login implements OnInit {
       this.cdr.detectChanges();
       return;
     }
+
     const usuarioSesion: UsuarioSesion = {
       idUsuario: idUsuario,
       idChofer: res.idChofer || res.usuario?.perfilChofer?.idChofer,
@@ -190,6 +188,9 @@ export class Login implements OnInit {
       this.mensajeExito = 'Inicio de sesión exitoso. Redirigiendo al inicio...';
       this.cdr.detectChanges();
       setTimeout(() => this.router.navigate(['/home']), 1500);
+    }
+  }
+}
     }
   }
 }

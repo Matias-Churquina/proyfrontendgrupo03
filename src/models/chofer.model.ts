@@ -4,7 +4,7 @@ import type { Viaje } from './viaje.model';
 
 export type Decimal = number | string;
 
-export interface Chofer {
+export interface ChoferModel {
   idChofer: number;
   idUsuario: number;
   licenciaConducir: string;
