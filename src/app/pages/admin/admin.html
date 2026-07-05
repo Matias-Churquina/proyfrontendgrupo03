@@ -1,0 +1,70 @@
+<section class="container-fluid my-4 px-3 px-lg-5">
+  <div class="mb-4">
+    <h2 class="mb-1">Panel de administrador</h2>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <h5 class="mb-3">Registrar nuevo admin</h5>
+
+      <form [formGroup]="adminForm" (ngSubmit)="registrarAdmin()">
+        <div class="row g-3">
+          <div class="col-12 col-md-6 col-xl-3">
+            <label class="form-label">Nombre</label>
+            <input class="form-control" type="text" formControlName="nombre">
+          </div>
+
+          <div class="col-12 col-md-6 col-xl-3">
+            <label class="form-label">Apellido</label>
+            <input class="form-control" type="text" formControlName="apellido">
+          </div>
+
+          <div class="col-12 col-md-6 col-xl-3">
+            <label class="form-label">Email</label>
+            <input class="form-control" type="email" formControlName="email">
+          </div>
+
+          <div class="col-12 col-md-6 col-xl-3">
+            <label class="form-label">Teléfono</label>
+            <input class="form-control" type="tel" formControlName="telefono">
+          </div>
+
+          <div class="col-12 col-md-6 col-xl-3">
+            <label class="form-label">Password</label>
+            <input class="form-control" type="password" formControlName="passwordHash">
+          </div>
+
+          <div class="col-12 col-md-6 col-xl-3">
+            <label class="form-label">Estado</label>
+            <select class="form-select" formControlName="estadoAdmin">
+              <option value="ACTIVO">ACTIVO</option>
+              <option value="SUSPENDIDO">SUSPENDIDO</option>
+              <option value="INACTIVO">INACTIVO</option>
+              <option value="ELIMINADO">ELIMINADO</option>
+            </select>
+          </div>
+
+          <div class="col-12 col-xl-3 d-flex align-items-end">
+            <button class="btn btn-primary w-100" type="submit" [disabled]="cargandoRegistro || adminForm.invalid">
+              @if (cargandoRegistro) {
+                Registrando...
+              } @else {
+                Registrar admin
+              }
+            </button>
+          </div>
+        </div>
+      </form>
+
+      @if (mensajeExito) {
+        <div class="alert alert-success mt-3 mb-0">{{ mensajeExito }}</div>
+      }
+
+      @if (mensajeError) {
+        <div class="alert alert-danger mt-3 mb-0">{{ mensajeError }}</div>
+      }
+    </div>
+  </div>
+</section>
+
+<app-admin-dashboard></app-admin-dashboard>
