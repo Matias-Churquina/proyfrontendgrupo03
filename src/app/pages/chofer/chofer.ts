@@ -5,6 +5,7 @@ import { ChoferService, CrearViajeDto } from '../../services/chofer.service';
 import { ChoferModel } from '../../../models/chofer.model';
 import { Auto } from '../../../models/auto.model';
 import { Viaje } from '../../../models/viaje.model';
+import { Reserva } from '../../../models/reserva.model';
 import * as bootstrap from 'bootstrap';
 
 type AutoBack = Auto & {
@@ -33,14 +34,16 @@ export class Chofer {
   public asientos = [1, 2, 3, 4];
   public viajesHistorial: ViajeBack[] = [];
   public mostrarHistorial = false;
-
+  public reserva: Reserva | null = null;
   public ciudades = ['San Salvador de Jujuy', 'Perico'];
   public nuevoOrigen = 'San Salvador de Jujuy';
   public nuevoDestino = 'Perico';
 
-  public idChofer = Number(localStorage.getItem('idChofer')) || 1;
+  public idChofer = this.getIdChoferSesion();
 
   private modalAgregarPasajero!: bootstrap.Modal;
+
+  public qrCobro?: string;
 
   constructor(
     private _choferService: ChoferService,
@@ -48,6 +51,11 @@ export class Chofer {
   ) {}
 
   ngOnInit(): void {
+    if (!this.idChofer) {
+      console.error('No hay idChofer en sesión');
+      return;
+    }
+
     this.loadChofer();
     this.loadAutos();
     this.loadViajes();
@@ -97,6 +105,15 @@ export class Chofer {
         console.error('Error al cargar viajes del chofer:', err);
       }
     });
+  }
+
+  private getIdChoferSesion(): number {
+    const sesion = sessionStorage.getItem('usuario_perico');
+
+    if (!sesion) return 0;
+
+    const usuario = JSON.parse(sesion);
+    return Number(usuario.idChofer) || 0;
   }
 
   cambiarDisponibilidad(activo: boolean): void {
@@ -161,6 +178,20 @@ export class Chofer {
       },
       error: (err) => {
         console.error('Error al iniciar viaje:', err);
+      }
+    });
+  }
+
+  cobrarConQr(reserva: any): void {
+    if (reserva.estadoPago === 'PAGADO') return;
+
+    this._choferService.generarQrCobro(reserva.idReserva).subscribe({
+      next: (response) => {
+        this.qrCobro = response.qr_data;
+        this._changeDetectorRef.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error al generar QR:', err);
       }
     });
   }

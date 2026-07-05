@@ -6,4 +6,5 @@ export interface Reserva {
   estadoReserva: 'PENDIENTE' | 'CONFIRMADA' | 'CANCELADA' | 'UTILIZADA' | 'NO_PRESENTADO'; 
   estadoPago: 'PENDIENTE' | 'PAGADO' | 'REEMBOLSADO';
   fechaActualizacion: Date;
+  Idviaje: number;
 }
