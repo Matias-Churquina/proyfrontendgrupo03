@@ -14,13 +14,28 @@
       </nav>
     </div>
 
-    <div class="d-flex gap-3 align-items-center">
-      <a href="#" class="text-secondary transition hover-scale">
-        <i class="bi bi-gear text-muted"></i>
-      </a>
-      <button class="btn btn-custom btn-primary-custom px-4 rounded-pill shadow-sm d-flex align-items-center gap-2" [routerLink]="['/login']">
-        <i class="bi bi-person-circle"></i> Iniciar sesión
-      </button>
+     <div class="d-flex gap-3 align-items-center">
+        <a href="#" class="text-secondary transition hover-scale">
+          <i class="bi bi-gear text-muted"></i>
+        </a>
+
+        @if (loginService.estaLogueadoSignal()) {
+          
+          <div class="d-flex align-items-center gap-3 fade-in">
+            <span class="text-dark fw-semibold small d-none d-sm-block">
+              Hola, {{ loginService.usuarioSesionSignal()?.nombre }}
+            </span>
+            <button class="btn btn-custom btn-outline-danger px-4 rounded-pill shadow-sm d-flex align-items-center gap-2 transition hover-scale" (click)="cerrarSesion()">
+              <i class="bi bi-box-arrow-right"></i> Cerrar sesión
+            </button>
+          </div>
+
+        } @else {
+
+          <button class="btn btn-custom btn-primary-custom px-4 rounded-pill shadow-sm d-flex align-items-center gap-2 transition hover-scale fade-in" [routerLink]="['/login']">
+            <i class="bi bi-person-circle"></i> Iniciar sesión
+          </button>
+        }
     </div>
 
   </div>

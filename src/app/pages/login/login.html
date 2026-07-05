@@ -50,6 +50,7 @@
               </div>
             </div>
           }
+
           @if (mensajeExito) {
             <div class="col-12 fade-in">
               <div class="alert alert-success d-flex align-items-center mb-0 border-0 shadow-sm" role="alert">
@@ -59,10 +60,10 @@
                 </div>
               </div>
             </div>
-          } 
+          }
 
           <div class="col-12 mt-2">
-            <button type="submit" class="btn btn-custom btn-primary-custom w-100 py-3 fw-bold fs-6 shadow-sm hover-scale" [disabled]="cargando || loginForm.invalid">
+            <button type="submit" class="btn btn-custom btn-primary-custom w-100 py-3 fw-bold fs-6 shadow-sm hover-scale" [disabled]="cargando || loginForm.invalid || mensajeExito">
               @if (cargando) {
                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                 Iniciando sesión...
@@ -72,9 +73,20 @@
             </button>
           </div>
 
+          <div class="col-12 mt-4 fade-in">
+            <div class="d-flex align-items-center">
+              <hr class="flex-grow-1 text-muted">
+              <span class="mx-3 text-muted small fw-semibold">O ingresa con</span>
+              <hr class="flex-grow-1 text-muted">
+            </div>
+          </div>
+
+          <div class="col-12 mt-3 fade-in d-flex justify-content-center">
+            <div id="contenedorBotonGoogle"></div>
+          </div>
+
         </div>
       </form>
-
     </div>
 
     <div class="text-center mt-4 fade-in">
