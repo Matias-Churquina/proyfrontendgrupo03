@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
 import type { Admin } from '../../models/admin.model';
-import type { Chofer } from '../../models/chofer.model';
+import type { ChoferModel } from '../../models/chofer.model';
 import type { Pasajero } from '../../models/pasajero.model';
 import type { Usuario } from '../../models/usuario.model';
 
@@ -26,7 +26,7 @@ export interface LoginResponse {
   nombre?: string;
   apellido?: string;
   email?: string;
-  estadoChofer?: Chofer['estadoChofer'];
+  estadoChofer?: ChoferModel['estadoChofer'];
   estadoPasajero?: Pasajero['estadoPasajero'];
   estadoAdmin?: Admin['estadoAdmin'];
   token?: string;
@@ -43,7 +43,7 @@ export interface UsuarioSesion {
   nombre: string;
   apellido: string;
   email: string;
-  estadoChofer?: Chofer['estadoChofer'];
+  estadoChofer?: ChoferModel['estadoChofer'];
   estadoPasajero?: Pasajero['estadoPasajero'];
   estadoAdmin?: Admin['estadoAdmin'];
   token: string;

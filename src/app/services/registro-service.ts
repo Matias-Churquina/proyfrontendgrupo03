@@ -1,24 +1,10 @@
 import { Service, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import type { RegistroPasajeroDTO } from '../../models/registroPasajero.dto';
+import type { RegistroChoferDTO } from '../../models/registroChofer.dto';
 
-export interface RegistroPasajeroDTO {
-  nombre: string;
-  apellido: string;
-  email: string;
-  passwordHash: string;
-  telefono: string;
-}
-
-export interface RegistroChoferDTO {
-  nombre: string;
-  apellido: string;
-  email: string;
-  passwordHash: string;
-  telefono: string;
-  licenciaConducir: string;
-  fechaHabilitacion: string;
-}
+export type { RegistroPasajeroDTO, RegistroChoferDTO };
 
 @Service()
 export class RegistroService {

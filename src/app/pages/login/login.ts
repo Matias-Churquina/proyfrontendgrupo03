@@ -1,13 +1,13 @@
 import { Component, OnInit, inject, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, RouterModule } from '@angular/router';
+import { Router, RouterLink, RouterModule } from '@angular/router';
 import { LoginService, LoginPayload, UsuarioSesion } from '../../services/login-service';
 
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule,RouterLink],
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
@@ -188,9 +188,6 @@ export class Login implements OnInit {
       this.mensajeExito = 'Inicio de sesión exitoso. Redirigiendo al inicio...';
       this.cdr.detectChanges();
       setTimeout(() => this.router.navigate(['/home']), 1500);
-    }
-  }
-}
     }
   }
 }
