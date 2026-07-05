@@ -23,7 +23,7 @@
           
           <div class="d-flex align-items-center gap-3 fade-in">
             <span class="text-dark fw-semibold small d-none d-sm-block">
-              Hola, {{ loginService.usuarioSesionSignal()?.nombre }}
+              Bienvenido, {{ loginService.usuarioSesionSignal()?.nombre | titlecase }} {{ loginService.usuarioSesionSignal()?.apellido | titlecase }}
             </span>
             <button class="btn btn-custom btn-outline-danger px-4 rounded-pill shadow-sm d-flex align-items-center gap-2 transition hover-scale" (click)="cerrarSesion()">
               <i class="bi bi-box-arrow-right"></i> Cerrar sesión
