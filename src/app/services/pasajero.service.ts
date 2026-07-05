@@ -36,8 +36,12 @@ export class PasajeroService {
     });
   }
 
-  crearReserva(reserva: CrearReservaDto): Observable<any> {
-    return this._http.post<any>(`${this.baseUrl}/reservas`, reserva);
+  crearReserva(reserva: CrearReservaDto, tipoCanal: 'LINK' | 'QR'): Observable<any> {
+    const params = new HttpParams().set('tipoCanal', tipoCanal);
+
+    return this._http.post<any>(`${this.baseUrl}/reservas`, reserva, {
+      params
+    });
   }
 
   actualizarAsientosDisponibles(idViaje: number, asientosDisponibles: number): Observable<any> {

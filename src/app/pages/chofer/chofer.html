@@ -140,6 +140,15 @@
                 </i>
 
               </button>
+              <button
+                type="button"
+                class="btn btn-outline-primary"
+                *ngIf="reserva && reserva.estadoPago !== 'PAGADO'"
+                (click)="cobrarConQr(reserva)"
+              >
+                <i class="bi bi-qr-code me-2"></i>
+                Cobrar con QR
+              </button>
             </div>
           </div>
 

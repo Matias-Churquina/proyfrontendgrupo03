@@ -56,4 +56,8 @@ export class ChoferService {
       asientosDisponibles
     });
   }
+
+  generarQrCobro(idReserva: number): Observable<any> {
+    return this._http.post<any>(`${this.baseUrl}/reservas/${idReserva}/qr`, {});
+  }
 }

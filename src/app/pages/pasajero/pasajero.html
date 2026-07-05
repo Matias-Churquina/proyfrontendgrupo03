@@ -110,6 +110,11 @@
             <span class="trip-label">Importe</span>
             <p class="mb-0">${{ reservaActiva.importeTotal }}</p>
           </div>
+
+          <div>
+            <span class="trip-label">Estado de pago</span>
+            <p class="mb-0">{{ reservaActiva.estadoPago }}</p>
+          </div>
         </div>
       </article>
     </section>
@@ -185,14 +190,25 @@
               {{ viaje.asientosDisponibles }} de {{ viaje.auto?.capacidadAsientos || 4 }} asientos disponibles
             </p>
 
-            <button
-              type="button"
-              class="btn btn-outline-primary w-100 select-button"
-              (click)="seleccionarViaje(viaje)"
-              [disabled]="!!reservaActiva || cantidadAsientos > viaje.asientosDisponibles"
-            >
-              Seleccionar Viaje
-            </button>
+            <div class="d-grid gap-2">
+              <button
+                type="button"
+                class="btn btn-outline-primary w-100 select-button"
+                [disabled]="!!reservaActiva || cantidadAsientos > viaje.asientosDisponibles"
+              >
+                <i class="bi bi-credit-card me-2"></i>
+                Pagar con Mercado Pago
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-light border w-100 select-button"
+                [disabled]="!!reservaActiva || cantidadAsientos > viaje.asientosDisponibles"
+              >
+                <i class="bi bi-cash-coin me-2"></i>
+                Pagar en efectivo
+              </button>
+            </div>
           </div>
         </article>
       </div>
@@ -228,7 +244,7 @@
 
           <tbody>
             <tr *ngFor="let reserva of historial">
-              <td>#{{ reserva.idViaje }}</td>
+              <td>#{{ reserva.idviaje }}</td>
               <td>
                 {{ reserva.viaje?.origen }} → {{ reserva.viaje?.destino }}
               </td>
