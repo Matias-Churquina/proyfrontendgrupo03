@@ -3,6 +3,7 @@ import { Home } from './pages/home/home';
 import { RegistrarUsuario } from './pages/registrar-usuario/registrar-usuario';
 import { Login } from './pages/login/login';
 import { Chofer } from './pages/chofer/chofer';
+import { PasajeroComponent } from './pages/pasajero/pasajero';
 
 
 export const routes: Routes = [
@@ -15,6 +16,8 @@ export const routes: Routes = [
     {path: 'login', component: Login},
 
     {path: 'chofer', component: Chofer},
+
+    {path: 'pasajero', component: PasajeroComponent},
     
     { path: '**', redirectTo: 'Home' }
 ];

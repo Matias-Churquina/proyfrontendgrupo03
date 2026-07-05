@@ -124,22 +124,25 @@ export class PasajeroComponent implements OnInit, OnDestroy {
       estadoPago: 'PENDIENTE'
     };
 
-    this._pasajeroService.crearReserva(reserva).subscribe({
-      next: () => {
+    this._pasajeroService.crearReserva(reserva, 'LINK').subscribe({
+      next: (response) => {
         const nuevosAsientos = viaje.asientosDisponibles - this.cantidadAsientos;
 
         this._pasajeroService.actualizarAsientosDisponibles(viaje.idViaje, nuevosAsientos).subscribe({
           next: () => {
-            this.mensaje = 'Reserva creada correctamente.';
+            this.mensaje = 'Reserva creada. Redirigiendo a Mercado Pago...';
             this.loadPasajero();
             this.buscarViajes();
-          },
-          error: (err) => console.error('Error al actualizar asientos:', err)
+
+            if (response.url_pago) {
+              window.open(response.url_pago, '_blank');
+            }
+          }
         });
       },
       error: (err) => {
-        this.mensaje = 'No se pudo crear la reserva.';
-        console.error('Error al reservar viaje:', err);
+        this.mensaje = 'No se pudo crear el pago.';
+        console.error(err);
       }
     });
   }
