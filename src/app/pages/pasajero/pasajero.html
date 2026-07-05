@@ -68,19 +68,48 @@
       {{ mensaje }}
     </div>
 
-    <section class="active-reservation mb-4" *ngIf="reservaActiva">
-      <article class="card-custom bg-white border rounded-3 p-3">
-        <div class="d-flex align-items-center justify-content-between gap-3">
+    <section class="active-reservation mb-4" *ngIf="reservaActiva?.viaje as viajeActivo">
+      <h2 class="section-title mb-3">Tu viaje reservado</h2>
+
+      <article class="active-trip-card card-custom bg-white border rounded-3">
+        <div class="active-trip-main">
           <div>
-            <h2 class="section-title mb-1">Reserva activa</h2>
+            <span class="trip-label">Recorrido</span>
+            <h3 class="active-trip-route mb-1">
+              {{ viajeActivo.origen }} a {{ viajeActivo.destino }}
+            </h3>
             <p class="mb-0 text-secondary">
-              Viaje #{{ reservaActiva.idViaje }} · {{ reservaActiva.cantidadAsientos }} asiento(s)
+              Viaje #{{ viajeActivo.idViaje }} · {{ reservaActiva.cantidadAsientos }} asiento(s)
             </p>
           </div>
 
           <span class="badge text-bg-primary">
             {{ reservaActiva.estadoReserva }}
           </span>
+        </div>
+
+        <div class="active-trip-details">
+          <div>
+            <span class="trip-label">Vehículo</span>
+            <p class="mb-0">
+              {{ viajeActivo.auto?.marca || '-' }} {{ viajeActivo.auto?.modelo || '' }}
+            </p>
+          </div>
+
+          <div>
+            <span class="trip-label">Patente</span>
+            <p class="mb-0">{{ viajeActivo.auto?.patente || '-' }}</p>
+          </div>
+
+          <div>
+            <span class="trip-label">Asientos disponibles</span>
+            <p class="mb-0">{{ viajeActivo.asientosDisponibles }}</p>
+          </div>
+
+          <div>
+            <span class="trip-label">Importe</span>
+            <p class="mb-0">${{ reservaActiva.importeTotal }}</p>
+          </div>
         </div>
       </article>
     </section>
@@ -176,8 +205,14 @@
     </section>
 
     <section *ngIf="mostrarHistorial">
-      <h2 class="section-title mb-3">Historial de Viajes</h2>
+      <div class="history-header mb-3">
+        <h2 class="section-title mb-0">Historial de Viajes</h2>
 
+        <button type="button" class="btn btn-light border" (click)="volverAViajesDisponibles()">
+          <i class="bi bi-arrow-left me-2"></i>
+          Volver a viajes disponibles
+        </button>
+      </div>
       <div class="table-responsive bg-white border rounded-3" *ngIf="historial.length > 0; else sinHistorial">
         <table class="table align-middle mb-0">
           <thead>

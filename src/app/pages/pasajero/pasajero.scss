@@ -184,3 +184,47 @@
     grid-template-columns: 1fr;
   }
 }
+
+.active-trip-card {
+  padding: 1.25rem;
+}
+
+.active-trip-main {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.active-trip-route {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #000;
+}
+
+.active-trip-details {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  padding-top: 1rem;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+@media (max-width: 767.98px) {
+  .active-trip-main,
+  .history-header {
+    flex-direction: column;
+  }
+
+  .active-trip-details {
+    grid-template-columns: 1fr 1fr;
+  }
+}
