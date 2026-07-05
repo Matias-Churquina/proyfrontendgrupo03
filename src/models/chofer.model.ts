@@ -21,4 +21,4 @@ export interface ChoferModel {
   viajes?: Viaje[];
 }
 
-export type CrearChoferDTO = Omit<Chofer, 'idChofer' | 'createdAt' | 'updatedAt' | 'usuario' | 'autos' | 'viajes'>;
+export type CrearChoferDTO = Omit<ChoferModel, 'idChofer' | 'createdAt' | 'updatedAt' | 'usuario' | 'autos' | 'viajes'>;

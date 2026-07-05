@@ -24,7 +24,6 @@ export class RegistrarUsuario implements OnInit {
   mensajeExito: string | null = null;
 
   ngOnInit(): void {
-    // fomrulario reactivo
     this.registroForm = this.fb.group({
       nombre: ['', Validators.required],
       apellido: ['', Validators.required],
@@ -66,7 +65,7 @@ export class RegistrarUsuario implements OnInit {
     fechaCtrl?.updateValueAndValidity();
   }
 
- registrarUsuario(): void {
+  registrarUsuario(): void {
     this.mensajeError = null;
 
     if (this.registroForm.invalid) {
@@ -77,12 +76,10 @@ export class RegistrarUsuario implements OnInit {
     this.cargando = true;
     const esPasajero = this.rolSeleccionado === 'PASAJERO';
 
-    // creamos un observable que apunta al método correcto según el rol
     const peticion$ = esPasajero 
       ? this.registroService.registrarPasajero(this.obtenerPayloadPasajero())
       : this.registroService.registrarChofer(this.obtenerPayloadChofer());
 
-    // unica suscripción para manejar tanto éxito como error
     peticion$.subscribe({
       next: (res) => this.manejarExito(res, esPasajero ? 'Pasajero' : 'Chofer'),
       error: (err) => this.manejarError(err, esPasajero)
@@ -90,7 +87,6 @@ export class RegistrarUsuario implements OnInit {
   }
 
   private obtenerPayloadPasajero(): RegistroPasajeroDTO {
-    // Usamos destructuring para que quede más limpio
     const { nombre, apellido, email, telefono, passwordHash } = this.registroForm.value;
     return { nombre, apellido, email, telefono, passwordHash };
   }
@@ -103,7 +99,7 @@ export class RegistrarUsuario implements OnInit {
   private manejarExito(res: any, tipoUsuario: string): void {
     console.log(`${tipoUsuario} registrado`, res);
     this.cargando = false;
-    this.mensajeExito = 'Usuario registrado correctamente. Redirigiendo al login...';
+    this.mensajeExito = `${tipoUsuario} registrado correctamente. Redirigiendo al login...`;
     this.cdr.detectChanges();
     
     setTimeout(() => {
@@ -115,7 +111,7 @@ export class RegistrarUsuario implements OnInit {
     console.error(err);
     this.cargando = false;
     
-    const mensajeBackend = err.error?.error || '';
+    const mensajeBackend = err.error?.error || err.error?.msg || '';
     const errorClaveDuplicada = mensajeBackend.includes('llave duplicada') || mensajeBackend.includes('unique');
 
     if (errorClaveDuplicada) {
