@@ -10,7 +10,7 @@
 
   <div class="row g-4 mb-4">
     
-    <div class="col-md-6">
+    <div class="col-lg-4">
       <div class="card card-custom h-100 p-4 p-lg-5 bg-white border-0 position-relative overflow-hidden">
 
         <div class="position-absolute top-0 end-0 p-4 opacity-25" style="transform: translate(20px, -20px);">
@@ -42,7 +42,7 @@
       </div>
     </div>
 
-    <div class="col-md-6">
+    <div class="col-lg-4">
       <div class="card card-custom h-100 p-4 p-lg-5 bg-primary text-white border-0 position-relative overflow-hidden">
         <div class="position-absolute top-0 end-0 p-4 opacity-25" style="transform: translate(20px, -20px);">
           <i class="bi bi-car-front-fill display-1 text-white"></i>
@@ -75,6 +75,40 @@
             </button>
             <button class="btn btn-custom btn-outline-light w-100 py-3 fw-bold hover-scale">
               Ver requisitos
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="card card-custom h-100 p-4 p-lg-5 bg-white border-0 position-relative overflow-hidden">
+        <div class="position-absolute top-0 end-0 p-4 opacity-25" style="transform: translate(20px, -20px);">
+          <i class="bi bi-person-gear display-1 text-primary"></i>
+        </div>
+
+        <div class="position-relative z-1">
+          <div class="bg-primary bg-opacity-10 text-primary rounded-custom d-inline-flex align-items-center justify-content-center p-3 mb-4 shadow-sm">
+            <i class="bi bi-speedometer2 fs-2"></i>
+          </div>
+          <h3 class="fw-bold mb-3 text-dark">Administracion</h3>
+          <p class="text-muted mb-4 fs-6 lh-lg">Crea una cuenta de administrador para ingresar al panel, revisar metricas y gestionar el sistema.</p>
+
+          <div class="d-flex flex-column gap-3 mb-5">
+            <div class="d-flex align-items-center text-secondary fw-medium">
+              <i class="bi bi-check2-circle text-primary fs-5 me-3"></i> Dashboard integrado
+            </div>
+            <div class="d-flex align-items-center text-secondary fw-medium">
+              <i class="bi bi-check2-circle text-primary fs-5 me-3"></i> Gestion centralizada
+            </div>
+          </div>
+
+          <div class="mt-auto d-flex flex-column gap-3">
+            <button [routerLink]="['/registro']" [queryParams]="{ tipo: 'admin' }" class="btn btn-custom btn-primary-custom w-100 py-3 fw-bold shadow-sm hover-scale d-flex justify-content-center align-items-center gap-2">
+              Registrar admin<i class="bi bi-arrow-right"></i>
+            </button>
+            <button routerLink="/login" class="btn btn-custom btn-outline-primary w-100 py-3 fw-bold hover-scale d-flex justify-content-center align-items-center gap-2">
+              Entrar al panel<i class="bi bi-box-arrow-in-right"></i>
             </button>
           </div>
         </div>

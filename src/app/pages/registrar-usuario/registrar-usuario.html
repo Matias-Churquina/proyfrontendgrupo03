@@ -27,6 +27,13 @@
             <i class="bi bi-car-front-fill me-2"></i>Conductor
           </button>
         </li>
+        <li class="nav-item">
+          <button type="button" class="nav-link fw-bold rounded-custom transition"
+                  [class.active]="rolSeleccionado === 'ADMIN'"
+                  (click)="cambiarRol('ADMIN')">
+            <i class="bi bi-person-gear me-2"></i>Admin
+          </button>
+        </li>
       </ul>
 
       <form [formGroup]="registroForm" (ngSubmit)="registrarUsuario()">
@@ -112,7 +119,7 @@
                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                 Procesando...
               } @else {
-                Registrarme como {{ rolSeleccionado === 'CHOFER' ? 'Conductor' : 'Pasajero' }}
+                Registrarme como {{ obtenerNombreRol() }}
               }
             </button>
           </div>

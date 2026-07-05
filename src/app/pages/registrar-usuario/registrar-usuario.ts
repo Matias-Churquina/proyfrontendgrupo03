@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
-import { RegistroService, RegistroPasajeroDTO, RegistroChoferDTO } from '../../services/registro-service';
+import { RegistroService, RegistroPasajeroDTO, RegistroChoferDTO, RegistroAdminDTO } from '../../services/registro-service';
 
 @Component({
   selector: 'app-registrar-usuario',
@@ -18,37 +18,38 @@ export class RegistrarUsuario implements OnInit {
   private cdr = inject(ChangeDetectorRef);
 
   registroForm!: FormGroup;
-  rolSeleccionado: 'PASAJERO' | 'CHOFER' = 'PASAJERO';
+  rolSeleccionado: 'PASAJERO' | 'CHOFER' | 'ADMIN' = 'PASAJERO';
   cargando = false;
   mensajeError: string | null = null;
   mensajeExito: string | null = null;
 
   ngOnInit(): void {
-    // fomrulario reactivo
     this.registroForm = this.fb.group({
       nombre: ['', Validators.required],
       apellido: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       telefono: ['', Validators.required],
       passwordHash: ['', [Validators.required, Validators.minLength(6)]],
-      licenciaConducir: [''], 
+      licenciaConducir: [''],
       fechaHabilitacion: ['']
     });
 
     this.route.queryParams.subscribe(params => {
       if (params['tipo'] === 'chofer') {
         this.cambiarRol('CHOFER');
+      } else if (params['tipo'] === 'admin') {
+        this.cambiarRol('ADMIN');
       } else {
         this.cambiarRol('PASAJERO');
       }
     });
   }
 
-  cambiarRol(rol: 'PASAJERO' | 'CHOFER'): void {
+  cambiarRol(rol: 'PASAJERO' | 'CHOFER' | 'ADMIN'): void {
     this.mensajeError = null;
     this.mensajeExito = null;
     this.rolSeleccionado = rol;
-    
+
     const licenciaCtrl = this.registroForm.get('licenciaConducir');
     const fechaCtrl = this.registroForm.get('fechaHabilitacion');
 
@@ -66,7 +67,7 @@ export class RegistrarUsuario implements OnInit {
     fechaCtrl?.updateValueAndValidity();
   }
 
- registrarUsuario(): void {
+  registrarUsuario(): void {
     this.mensajeError = null;
 
     if (this.registroForm.invalid) {
@@ -75,22 +76,40 @@ export class RegistrarUsuario implements OnInit {
     }
 
     this.cargando = true;
-    const esPasajero = this.rolSeleccionado === 'PASAJERO';
+    const peticion$ = this.obtenerPeticionRegistro();
+    const tipoUsuario = this.obtenerNombreRol();
 
-    // creamos un observable que apunta al método correcto según el rol
-    const peticion$ = esPasajero 
-      ? this.registroService.registrarPasajero(this.obtenerPayloadPasajero())
-      : this.registroService.registrarChofer(this.obtenerPayloadChofer());
-
-    // unica suscripción para manejar tanto éxito como error
     peticion$.subscribe({
-      next: (res) => this.manejarExito(res, esPasajero ? 'Pasajero' : 'Chofer'),
-      error: (err) => this.manejarError(err, esPasajero)
+      next: (res) => this.manejarExito(res, tipoUsuario),
+      error: (err) => this.manejarError(err)
     });
   }
 
+  obtenerNombreRol(): string {
+    if (this.rolSeleccionado === 'CHOFER') {
+      return 'Chofer';
+    }
+
+    if (this.rolSeleccionado === 'ADMIN') {
+      return 'Admin';
+    }
+
+    return 'Pasajero';
+  }
+
+  private obtenerPeticionRegistro() {
+    if (this.rolSeleccionado === 'PASAJERO') {
+      return this.registroService.registrarPasajero(this.obtenerPayloadPasajero());
+    }
+
+    if (this.rolSeleccionado === 'CHOFER') {
+      return this.registroService.registrarChofer(this.obtenerPayloadChofer());
+    }
+
+    return this.registroService.registrarAdmin(this.obtenerPayloadAdmin());
+  }
+
   private obtenerPayloadPasajero(): RegistroPasajeroDTO {
-    // Usamos destructuring para que quede más limpio
     const { nombre, apellido, email, telefono, passwordHash } = this.registroForm.value;
     return { nombre, apellido, email, telefono, passwordHash };
   }
@@ -100,32 +119,37 @@ export class RegistrarUsuario implements OnInit {
     return { nombre, apellido, email, telefono, passwordHash, licenciaConducir, fechaHabilitacion };
   }
 
+  private obtenerPayloadAdmin(): RegistroAdminDTO {
+    const { nombre, apellido, email, telefono, passwordHash } = this.registroForm.value;
+    return { nombre, apellido, email, telefono, passwordHash, estadoAdmin: 'ACTIVO' };
+  }
+
   private manejarExito(res: any, tipoUsuario: string): void {
     console.log(`${tipoUsuario} registrado`, res);
     this.cargando = false;
-    this.mensajeExito = 'Usuario registrado correctamente. Redirigiendo al login...';
+    this.mensajeExito = `${tipoUsuario} registrado correctamente. Redirigiendo al login...`;
     this.cdr.detectChanges();
-    
+
     setTimeout(() => {
       this.router.navigate(['/login']);
     }, 2500);
   }
 
-  private manejarError(err: any, esPasajero: boolean): void {
+  private manejarError(err: any): void {
     console.error(err);
     this.cargando = false;
-    
-    const mensajeBackend = err.error?.error || '';
+
+    const mensajeBackend = err.error?.error || err.error?.msg || '';
     const errorClaveDuplicada = mensajeBackend.includes('llave duplicada') || mensajeBackend.includes('unique');
 
     if (errorClaveDuplicada) {
-      this.mensajeError = esPasajero 
-        ? 'Este correo electrónico ya se encuentra registrado.' 
-        : 'Este correo electrónico o licencia ya se encuentra registrado/a.';
+      this.mensajeError = this.rolSeleccionado === 'CHOFER'
+        ? 'Este correo electronico o licencia ya se encuentra registrado/a.'
+        : 'Este correo electronico ya se encuentra registrado.';
     } else {
-      this.mensajeError = 'Ocurrió un error al registrar el usuario. Intente nuevamente.';
+      this.mensajeError = 'Ocurrio un error al registrar el usuario. Intente nuevamente.';
     }
-    
+
     this.cdr.detectChanges();
   }
 }

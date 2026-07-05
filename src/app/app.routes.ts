@@ -4,6 +4,8 @@ import { RegistrarUsuario } from './pages/registrar-usuario/registrar-usuario';
 import { Login } from './pages/login/login';
 import { ChoferPage } from './pages/chofer/chofer';
 import { PasajeroPage } from './pages/pasajero/pasajero';
+import { AdminDashboard } from './pages/admin-dashboard/admin-dashboard';
+import { AdminPage } from './pages/admin/admin';
 
 
 export const routes: Routes = [
@@ -21,7 +23,9 @@ export const routes: Routes = [
 
     { path: 'pasajero', component: PasajeroPage },
 
-    { path: 'admin', redirectTo: 'home' },
+    { path: 'admin', component: AdminPage },
+
+    { path: 'admin/dashboard', component: AdminDashboard },
     
     { path: '**', redirectTo: 'Home' }
 ];

@@ -89,9 +89,9 @@ export class Login implements OnInit {
           return;
         }
 
-        this.mensajeExito = 'Inicio de sesion exitoso. Redirigiendo al inicio...';
+        this.mensajeExito = 'Inicio de sesion exitoso. Redirigiendo al dashboard administrativo...';
         this.cdr.detectChanges();
-        setTimeout(() => this.router.navigate(['/home']), 1000);
+        setTimeout(() => this.router.navigate(['/admin']), 1000);
       },
       error: (err) => {
         console.error('Error del servidor:', err);
