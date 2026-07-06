@@ -1,4 +1,4 @@
-<section class="passenger-page">
+﻿<section class="passenger-page">
   <header class="passenger-header bg-white border-bottom">
     <div>
       <h1 class="page-title mb-1">Buscar Viaje</h1>
@@ -79,7 +79,7 @@
               {{ viajeActivo.origen }} a {{ viajeActivo.destino }}
             </h3>
             <p class="mb-0 text-secondary">
-              Viaje #{{ viajeActivo.idViaje }} · {{ reservaActiva.cantidadAsientos }} asiento(s)
+              Viaje #{{ viajeActivo.idViaje }} - {{ reservaActiva.cantidadAsientos }} asiento(s)
             </p>
           </div>
 
@@ -117,6 +117,52 @@
           </div>
         </div>
       </article>
+    </section>
+
+    <section class="passenger-map-section card-custom bg-white border rounded-3 mb-4" *ngIf="reservaActiva">
+      <div class="map-section-header">
+        <div>
+          <h2 class="section-title mb-1">
+            <i class="bi bi-geo-alt text-primary me-2"></i>
+            Ubicacion y ruta
+          </h2>
+          <p class="text-secondary mb-0">
+            Consulta la ultima ubicacion compartida por tu chofer y calcula como llegar.
+          </p>
+        </div>
+
+        <div class="map-actions">
+          <button type="button" class="btn btn-light border" (click)="actualizarUbicacionChofer()">
+            <i class="bi bi-arrow-clockwise me-2"></i>
+            Ver ubicacion
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="comoLlegarAlChofer()"
+            [disabled]="!puntoChofer"
+          >
+            <i class="bi bi-signpost-2 me-2"></i>
+            Como llegar
+          </button>
+        </div>
+      </div>
+
+      <div class="mt-3" *ngIf="puntoChofer || puntoPasajero; else sinUbicacionMapa">
+        <app-mapa-ruta
+          idMapa="mapaPasajero"
+          [chofer]="puntoChofer"
+          [pasajero]="puntoPasajero"
+          [rutaGeoJson]="rutaGeoJson"
+        ></app-mapa-ruta>
+      </div>
+
+      <ng-template #sinUbicacionMapa>
+        <div class="empty-map mt-3">
+          El chofer todavia no compartio su ubicacion.
+        </div>
+      </ng-template>
     </section>
 
     <section *ngIf="!mostrarHistorial">
@@ -194,6 +240,7 @@
               <button
                 type="button"
                 class="btn btn-outline-primary w-100 select-button"
+                (click)="seleccionarViaje(viaje)"
                 [disabled]="!!reservaActiva || cantidadAsientos > viaje.asientosDisponibles"
               >
                 <i class="bi bi-credit-card me-2"></i>
@@ -246,7 +293,7 @@
             <tr *ngFor="let reserva of historial">
               <td>#{{ reserva.idviaje }}</td>
               <td>
-                {{ reserva.viaje?.origen }} → {{ reserva.viaje?.destino }}
+                {{ reserva.viaje?.origen }} â†’ {{ reserva.viaje?.destino }}
               </td>
               <td>{{ reserva.cantidadAsientos }}</td>
               <td>${{ reserva.importeTotal }}</td>
@@ -259,7 +306,7 @@
 
       <ng-template #sinHistorial>
         <div class="empty-state bg-white border rounded-3">
-          Todavía no tenés viajes en el historial.
+          TodavÃ­a no tenÃ©s viajes en el historial.
         </div>
       </ng-template>
     </section>

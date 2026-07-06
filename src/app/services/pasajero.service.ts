@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { Pasajero } from '../../models/pasajero.model';
 import { Viaje } from '../../models/viaje.model';
 import { Reserva } from '../../models/reserva.model';
+import { ChoferModel } from '../../models/chofer.model';
 
 export interface CrearReservaDto {
   idPasajero: number;
@@ -24,6 +25,10 @@ export class PasajeroService {
 
   getPasajeroById(idPasajero: number): Observable<Pasajero> {
     return this._http.get<Pasajero>(`${this.baseUrl}/pasajeros/${idPasajero}`);
+  }
+
+  getChoferById(idChofer: number): Observable<ChoferModel> {
+    return this._http.get<ChoferModel>(`${this.baseUrl}/choferes/${idChofer}`);
   }
 
   getViajesDisponibles(origen: string, destino: string): Observable<Viaje[]> {
