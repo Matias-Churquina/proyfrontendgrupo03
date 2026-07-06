@@ -21,6 +21,26 @@
     </div>
   </div>
 
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-lg-6">
+      <app-clima-widget
+        titulo="Condiciones para manejar - Perico"
+        [ubicacionNombre]="climaPerico.nombre"
+        [latitud]="climaPerico.latitud"
+        [longitud]="climaPerico.longitud">
+      </app-clima-widget>
+    </div>
+
+    <div class="col-12 col-lg-6">
+      <app-clima-widget
+        titulo="Condiciones para manejar - San Salvador"
+        [ubicacionNombre]="climaSanSalvador.nombre"
+        [latitud]="climaSanSalvador.latitud"
+        [longitud]="climaSanSalvador.longitud">
+      </app-clima-widget>
+    </div>
+  </div>
+
   <button
     class="btn btn-primary mb-3"
     type="button"

@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { ClimaWidget } from '../../components/clima-widget/clima-widget';
 import { MapaUbicacion } from '../../components/mapa-ubicacion/mapa-ubicacion';
 import { ChoferService } from '../../services/chofer.service';
 import { GeolocationService, Coordenadas } from '../../services/geolocation.service';
@@ -8,12 +9,24 @@ import { SesionService, UsuarioSesion } from '../../services/sesion.service';
 
 @Component({
   selector: 'app-chofer',
-  imports: [FormsModule, MapaUbicacion],
+  imports: [FormsModule, MapaUbicacion, ClimaWidget],
   templateUrl: './chofer.html',
   styleUrl: './chofer.css',
 })
-export class ChoferPage {
+export class ChoferPage implements AfterViewInit {
   usuario: UsuarioSesion | null = null;
+
+  readonly climaPerico = {
+    nombre: 'Perico',
+    latitud: -24.3833,
+    longitud: -65.1167,
+  };
+
+  readonly climaSanSalvador = {
+    nombre: 'San Salvador de Jujuy',
+    latitud: -24.1858,
+    longitud: -65.2995,
+  };
 
   latitud?: number;
   longitud?: number;
@@ -30,7 +43,8 @@ export class ChoferPage {
     private sesionService: SesionService,
     private geolocationService: GeolocationService,
     private choferService: ChoferService,
-    private router: Router
+    private router: Router,
+    private cdr: ChangeDetectorRef
   ) {
     this.usuario = this.sesionService.obtenerUsuario();
 
@@ -42,23 +56,31 @@ export class ChoferPage {
     this.cargarUltimaUbicacion();
   }
 
+  ngAfterViewInit(): void {
+    setTimeout(() => this.cdr.detectChanges());
+  }
+
   cargarUltimaUbicacion(): void {
     if (!this.usuario?.idChofer) {
+      this.cdr.detectChanges();
       return;
     }
 
     this.choferService.obtenerChofer(this.usuario.idChofer).subscribe({
       next: (chofer) => {
         if (chofer.latitud === null || chofer.latitud === undefined || chofer.longitud === null || chofer.longitud === undefined) {
+          this.cdr.detectChanges();
           return;
         }
 
         this.latitud = Number(chofer.latitud);
         this.longitud = Number(chofer.longitud);
         this.precision = chofer.precision !== null && chofer.precision !== undefined ? Number(chofer.precision) : undefined;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error(error);
+        this.cdr.detectChanges();
       },
     });
   }
@@ -71,6 +93,7 @@ export class ChoferPage {
     if (!this.usuario?.idChofer) {
       this.error = 'No se encontro el id del chofer en la sesion.';
       this.cargando = false;
+      this.cdr.detectChanges();
       return;
     }
 
@@ -83,6 +106,7 @@ export class ChoferPage {
         console.error(error);
         this.error = 'No se pudo obtener la ubicacion del dispositivo.';
         this.cargando = false;
+        this.cdr.detectChanges();
       });
   }
 
@@ -92,6 +116,7 @@ export class ChoferPage {
 
     if (!Number.isFinite(Number(this.latitudManual)) || !Number.isFinite(Number(this.longitudManual))) {
       this.error = 'Ingrese latitud y longitud validas.';
+      this.cdr.detectChanges();
       return;
     }
 
@@ -107,6 +132,7 @@ export class ChoferPage {
     if (!this.usuario?.idChofer) {
       this.error = 'No se encontro el id del chofer en la sesion.';
       this.cargando = false;
+      this.cdr.detectChanges();
       return;
     }
 
@@ -118,6 +144,7 @@ export class ChoferPage {
       next: () => {
         this.mensaje = 'Ubicacion enviada correctamente.';
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error(error);
@@ -125,6 +152,7 @@ export class ChoferPage {
           ? 'El backend no respondio a tiempo al guardar la ubicacion.'
           : error.error?.msg || 'Error enviando ubicacion al backend.';
         this.cargando = false;
+        this.cdr.detectChanges();
       },
     });
   }

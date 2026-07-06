@@ -1,4 +1,4 @@
-import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
@@ -11,24 +11,20 @@ import { SesionService, UsuarioSesion } from '../../services/sesion.service';
   templateUrl: './login.html',
   styleUrl: './login.scss',
 })
-export class Login implements OnInit {
+export class Login {
   private fb = inject(FormBuilder);
   private loginService = inject(LoginService);
   private sesionService = inject(SesionService);
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
-  loginForm!: FormGroup;
+  loginForm: FormGroup = this.fb.group({
+    email: ['', [Validators.required, Validators.email]],
+    password: ['', Validators.required],
+  });
   cargando = false;
   mensajeError: string | null = null;
   mensajeExito: string | null = null;
-
-  ngOnInit(): void {
-    this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', Validators.required],
-    });
-  }
 
   iniciarSesion(): void {
     this.mensajeError = null;

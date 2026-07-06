@@ -1,5 +1,6 @@
-import { Component, ChangeDetectorRef } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component } from '@angular/core';
 import { Router } from '@angular/router';
+import { ClimaWidget } from '../../components/clima-widget/clima-widget';
 import { MapaUbicacion, PuntoMapa } from '../../components/mapa-ubicacion/mapa-ubicacion';
 import { ChoferService } from '../../services/chofer.service';
 import { SesionService, UsuarioSesion } from '../../services/sesion.service';
@@ -7,21 +8,33 @@ import { SesionService, UsuarioSesion } from '../../services/sesion.service';
 
 @Component({
   selector: 'app-pasajero',
-  imports: [MapaUbicacion],
+  imports: [MapaUbicacion, ClimaWidget],
   templateUrl: './pasajero.html',
   styleUrl: './pasajero.css',
 })
-export class PasajeroPage {
+export class PasajeroPage implements AfterViewInit {
   usuario: UsuarioSesion | null = null;
+
+  readonly climaPerico = {
+    nombre: 'Perico',
+    latitud: -24.3833,
+    longitud: -65.1167,
+  };
+
+  readonly climaSanSalvador = {
+    nombre: 'San Salvador de Jujuy',
+    latitud: -24.1858,
+    longitud: -65.2995,
+  };
 
   ubicacionesChoferes: PuntoMapa[] = [];
   mostrarMapaChoferes = false;
   cargandoUbicacion = false;
   mensajeUbicacion = '';
   errorUbicacion = '';
-latitud: number|undefined;
-longitud: number|undefined;
-precision: number|undefined;
+  latitud: number | undefined;
+  longitud: number | undefined;
+  precision: number | undefined;
 
   constructor(
     private sesionService: SesionService,
@@ -35,6 +48,11 @@ precision: number|undefined;
       this.router.navigate(['/login']);
       return;
     }
+
+  }
+
+  ngAfterViewInit(): void {
+    setTimeout(() => this.cdr.detectChanges());
   }
 
   cerrarSesion(): void {
@@ -80,6 +98,7 @@ precision: number|undefined;
 
         if (this.ubicacionesChoferes.length === 0) {
           this.errorUbicacion = 'Todavia no hay choferes compartiendo ubicacion.';
+          this.cdr.detectChanges();
           return;
         }
 
@@ -90,6 +109,7 @@ precision: number|undefined;
         console.error(error);
         this.cargandoUbicacion = false;
         this.errorUbicacion = error.error?.msg || 'No se pudieron obtener las ubicaciones de los choferes.';
+        this.cdr.detectChanges();
       },
     });
   }

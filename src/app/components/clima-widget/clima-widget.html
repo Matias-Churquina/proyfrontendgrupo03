@@ -1,0 +1,90 @@
+<div class="card shadow-sm my-3">
+  <div class="card-body">
+    <div class="d-flex justify-content-between align-items-start gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="clima-icono" [ngClass]="claseIconoClima">
+          <i class="bi" [ngClass]="iconoClima"></i>
+        </div>
+
+        <div>
+          <h5 class="mb-1">{{ titulo }}</h5>
+          <p class="text-muted mb-0">{{ ubicacionNombre }}</p>
+          @if (clima) {
+            <span class="badge bg-light text-dark border mt-2">{{ descripcionClima }}</span>
+          }
+        </div>
+      </div>
+
+      <button
+        class="btn btn-sm btn-outline-primary"
+        type="button"
+        [disabled]="cargando"
+        (click)="cargarClima()"
+      >
+        Actualizar
+      </button>
+    </div>
+
+    @if (cargando) {
+      <div class="alert alert-info mt-3 mb-0">
+        Cargando clima...
+      </div>
+    }
+
+    @if (error) {
+      <div class="alert alert-danger mt-3 mb-0">
+        {{ error }}
+      </div>
+    }
+
+    @if (clima) {
+      <div class="row g-3 mt-2">
+        <div class="col-6 col-md-4">
+          <div class="clima-dato">
+            <span><i class="bi bi-thermometer-half me-1"></i>Temperatura</span>
+            <strong>{{ clima.current.temperature_2m }} C</strong>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+          <div class="clima-dato">
+            <span><i class="bi bi-person-fill me-1"></i>Sensacion</span>
+            <strong>{{ clima.current.apparent_temperature }} C</strong>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+          <div class="clima-dato">
+            <span><i class="bi bi-droplet-half me-1"></i>Humedad</span>
+            <strong>{{ clima.current.relative_humidity_2m }} %</strong>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+          <div class="clima-dato">
+            <span><i class="bi bi-cloud-rain me-1"></i>Lluvia actual</span>
+            <strong>{{ clima.current.rain }} mm</strong>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+          <div class="clima-dato">
+            <span><i class="bi bi-wind me-1"></i>Viento</span>
+            <strong>{{ clima.current.wind_speed_10m }} km/h</strong>
+          </div>
+        </div>
+
+        <div class="col-6 col-md-4">
+          <div class="clima-dato">
+            <span><i class="bi bi-cloud-drizzle me-1"></i>Probabilidad lluvia</span>
+            <strong>{{ clima.daily.precipitation_probability_max[0] }} %</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="alert mt-3 mb-0" [ngClass]="claseRecomendacion">
+        {{ recomendacion }}
+      </div>
+    }
+  </div>
+</div>

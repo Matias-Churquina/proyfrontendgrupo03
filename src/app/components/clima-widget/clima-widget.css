@@ -1,0 +1,49 @@
+.clima-icono {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  font-size: 1.6rem;
+}
+
+.clima-icono-sol {
+  background: #fff3cd;
+  color: #f0ad00;
+}
+
+.clima-icono-nube {
+  background: #e9ecef;
+  color: #6c757d;
+}
+
+.clima-icono-lluvia {
+  background: #dbeafe;
+  color: #0d6efd;
+}
+
+.clima-icono-tormenta {
+  background: #ede9fe;
+  color: #6f42c1;
+}
+
+.clima-dato {
+  border: 1px solid #e9ecef;
+  border-radius: 0.75rem;
+  padding: 0.75rem;
+  background: #f8f9fa;
+  height: 100%;
+}
+
+.clima-dato span {
+  display: block;
+  color: #6c757d;
+  font-size: 0.85rem;
+  margin-bottom: 0.25rem;
+}
+
+.clima-dato strong {
+  font-size: 1.1rem;
+}
