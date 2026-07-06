@@ -1,10 +1,12 @@
-import { Component, ChangeDetectorRef, OnInit, OnDestroy} from '@angular/core';
+import { Component, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { PasajeroService, CrearReservaDto } from '../../services/pasajero.service';
+import { RutaService } from '../../services/ruta.service';
 import { Pasajero } from '../../../models/pasajero.model';
 import { Viaje } from '../../../models/viaje.model';
 import { Reserva } from '../../../models/reserva.model';
+import { MapaRutaComponent, PuntoMapa } from '../../components/mapa-ruta/mapa-ruta';
 
 type ViajeCard = Viaje & {
   idChofer?: number;
@@ -21,11 +23,11 @@ type ReservaHistorial = Reserva & {
 @Component({
   selector: 'app-pasajero',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MapaRutaComponent],
   templateUrl: './pasajero.html',
   styleUrl: './pasajero.scss'
 })
-export class PasajeroComponent implements OnInit, OnDestroy {
+export class PasajeroComponent implements OnInit {
   public pasajero?: Pasajero;
   public viajesDisponibles: ViajeCard[] = [];
   public historial: ReservaHistorial[] = [];
@@ -40,35 +42,37 @@ export class PasajeroComponent implements OnInit, OnDestroy {
   public buscando = false;
   public mensaje = '';
 
-  private refreshTimer?: ReturnType<typeof setInterval>;
+  public puntoChofer?: PuntoMapa;
+  public puntoPasajero?: PuntoMapa;
+  public rutaGeoJson?: GeoJSON.LineString;
 
-  public idPasajero = Number(sessionStorage.getItem('idPasajero')) || this.getIdPasajeroSesion() || 1;
+  public idPasajero =
+    Number(sessionStorage.getItem('idPasajero')) ||
+    this.getIdPasajeroSesion() ||
+    1;
 
   constructor(
     private _pasajeroService: PasajeroService,
+    private _rutaService: RutaService,
     private _changeDetectorRef: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     this.loadPasajero();
     this.buscarViajes();
-    this.iniciarActualizacionAutomatica();
-  }
-
-  ngOnDestroy(): void {
-    this._changeDetectorRef.detach();
-    if (this.refreshTimer) {
-      clearInterval(this.refreshTimer);
-    }
   }
 
   loadPasajero(): void {
     this._pasajeroService.getPasajeroById(this.idPasajero).subscribe({
       next: (data: any) => {
         this.pasajero = data;
+
         this.reservaActiva = data.reservas?.find((reserva: ReservaHistorial) =>
-          reserva.estadoReserva === 'PENDIENTE' || reserva.estadoReserva === 'CONFIRMADA'
+          reserva.estadoReserva === 'PENDIENTE' ||
+          reserva.estadoReserva === 'CONFIRMADA'
         );
+
+        this.sincronizarPuntoChoferDesdeReserva();
         this._changeDetectorRef.detectChanges();
       },
       error: (err) => console.error('Error al cargar pasajero:', err)
@@ -106,7 +110,7 @@ export class PasajeroComponent implements OnInit, OnDestroy {
 
   seleccionarViaje(viaje: ViajeCard): void {
     if (this.reservaActiva) {
-      this.mensaje = 'Ya tenés una reserva activa. Cancelala o finalizala antes de reservar otro viaje.';
+      this.mensaje = 'Ya tenes una reserva activa. Cancelala o finalizala antes de reservar otro viaje.';
       return;
     }
 
@@ -147,6 +151,45 @@ export class PasajeroComponent implements OnInit, OnDestroy {
     });
   }
 
+  pagarEnEfectivo(viaje: ViajeCard): void {
+    if (this.reservaActiva) {
+      this.mensaje = 'Ya tenes una reserva activa.';
+      return;
+    }
+
+    if (this.cantidadAsientos > viaje.asientosDisponibles) {
+      this.mensaje = 'No hay suficientes asientos disponibles.';
+      return;
+    }
+
+    const reserva: CrearReservaDto = {
+      idPasajero: this.idPasajero,
+      idViaje: viaje.idViaje,
+      cantidadAsientos: this.cantidadAsientos,
+      importeTotal: Number(viaje.tarifaPorAsiento) * this.cantidadAsientos,
+      estadoReserva: 'CONFIRMADA',
+      estadoPago: 'PENDIENTE'
+    };
+
+    this._pasajeroService.crearReserva(reserva, 'EFECTIVO' as any).subscribe({
+      next: () => {
+        const nuevosAsientos = viaje.asientosDisponibles - this.cantidadAsientos;
+
+        this._pasajeroService.actualizarAsientosDisponibles(viaje.idViaje, nuevosAsientos).subscribe({
+          next: () => {
+            this.mensaje = 'Reserva confirmada. El pago queda pendiente en efectivo.';
+            this.loadPasajero();
+            this.buscarViajes();
+          }
+        });
+      },
+      error: (err) => {
+        this.mensaje = 'No se pudo confirmar la reserva en efectivo.';
+        console.error(err);
+      }
+    });
+  }
+
   verHistorial(): void {
     this.mostrarHistorial = !this.mostrarHistorial;
 
@@ -166,17 +209,83 @@ export class PasajeroComponent implements OnInit, OnDestroy {
     this.buscarViajes();
   }
 
-  private iniciarActualizacionAutomatica(): void {
-    this.refreshTimer = setInterval(() => {
-      if (!this.mostrarHistorial) {
-        this.loadPasajero();
-        this.buscarViajes(true);
-      }
-    }, 8000);
+  abrirConfiguracion(): void {
+    this.mensaje = 'Configuracion pendiente de implementar.';
   }
 
-  abrirConfiguracion(): void {
-    this.mensaje = 'Configuración pendiente de implementar.';
+  actualizarUbicacionChofer(): void {
+    const idChofer = this.reservaActiva?.viaje?.idChofer || this.reservaActiva?.viaje?.chofer?.idChofer;
+
+    if (!idChofer) {
+      this.mensaje = 'No se encontro el chofer de la reserva activa.';
+      return;
+    }
+
+    this._pasajeroService.getChoferById(idChofer).subscribe({
+      next: (chofer: any) => {
+        if (chofer.latitud === null || chofer.latitud === undefined || chofer.longitud === null || chofer.longitud === undefined) {
+          this.mensaje = 'El chofer todavia no compartio su ubicacion.';
+          return;
+        }
+
+        this.puntoChofer = {
+          latitud: Number(chofer.latitud),
+          longitud: Number(chofer.longitud),
+          etiqueta: 'Chofer',
+          tipo: 'chofer'
+        };
+
+        this._changeDetectorRef.detectChanges();
+      },
+      error: (err) => {
+        this.mensaje = 'No se pudo actualizar la ubicacion del chofer.';
+        console.error(err);
+      }
+    });
+  }
+
+  comoLlegarAlChofer(): void {
+    if (!this.puntoChofer) {
+      this.actualizarUbicacionChofer();
+      this.mensaje = 'Primero actualiza la ubicacion del chofer.';
+      return;
+    }
+
+    if (!navigator.geolocation) {
+      this.mensaje = 'Tu navegador no permite obtener tu ubicacion.';
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        this.puntoPasajero = {
+          latitud: position.coords.latitude,
+          longitud: position.coords.longitude,
+          etiqueta: 'Tu ubicacion',
+          tipo: 'pasajero'
+        };
+
+        this._rutaService.obtenerRuta(this.puntoPasajero, this.puntoChofer!).subscribe({
+          next: (response) => {
+            this.rutaGeoJson = response.routes?.[0]?.geometry;
+            this._changeDetectorRef.detectChanges();
+          },
+          error: (err) => {
+            this.mensaje = 'No se pudo calcular la ruta.';
+            console.error(err);
+          }
+        });
+      },
+      (err) => {
+        this.mensaje = 'No se pudo obtener tu ubicacion actual.';
+        console.error(err);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 8000,
+        maximumAge: 0
+      }
+    );
   }
 
   getNombreChofer(viaje: ViajeCard): string {
@@ -197,6 +306,23 @@ export class PasajeroComponent implements OnInit, OnDestroy {
   getAsientosOcupados(viaje: ViajeCard): number {
     const capacidad = viaje.auto?.capacidadAsientos || 4;
     return capacidad - viaje.asientosDisponibles;
+  }
+
+  private sincronizarPuntoChoferDesdeReserva(): void {
+    const chofer = this.reservaActiva?.viaje?.chofer;
+
+    if (!chofer?.latitud || !chofer?.longitud) {
+      this.puntoChofer = undefined;
+      this.rutaGeoJson = undefined;
+      return;
+    }
+
+    this.puntoChofer = {
+      latitud: Number(chofer.latitud),
+      longitud: Number(chofer.longitud),
+      etiqueta: 'Chofer',
+      tipo: 'chofer'
+    };
   }
 
   private getIdPasajeroSesion(): number {

@@ -1,12 +1,14 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ChoferService, CrearViajeDto } from '../../services/chofer.service';
+import { ChoferService, Coordenadas, CrearViajeDto } from '../../services/chofer.service';
 import { ChoferModel } from '../../../models/chofer.model';
 import { Auto } from '../../../models/auto.model';
 import { Viaje } from '../../../models/viaje.model';
 import { Reserva } from '../../../models/reserva.model';
 import * as bootstrap from 'bootstrap';
+import { GeolocationService } from '../../services/geolocalizacion.service';
+import { MapaRutaComponent, PuntoMapa } from '../../components/mapa-ruta/mapa-ruta';
 
 type AutoBack = Auto & {
   estado?: 'DISPONIBLE' | 'EN_VIAJE' | 'EN_TALLER' | 'INACTIVO';
@@ -22,11 +24,11 @@ type ViajeBack = Viaje & {
 @Component({
   selector: 'app-chofer',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MapaRutaComponent],
   templateUrl: './chofer.html',
   styleUrl: './chofer.scss'
 })
-export class Chofer {
+export class Chofer implements OnInit {
   public chofer?: ChoferModel;
   public autos: AutoBack[] = [];
   public autoAsignado?: AutoBack;
@@ -35,6 +37,7 @@ export class Chofer {
   public viajesHistorial: ViajeBack[] = [];
   public mostrarHistorial = false;
   public reserva: Reserva | null = null;
+
   public ciudades = ['San Salvador de Jujuy', 'Perico'];
   public nuevoOrigen = 'San Salvador de Jujuy';
   public nuevoDestino = 'Perico';
@@ -42,17 +45,25 @@ export class Chofer {
   public idChofer = this.getIdChoferSesion();
 
   private modalAgregarPasajero!: bootstrap.Modal;
-
   public qrCobro?: string;
+
+  public latitud?: number;
+  public longitud?: number;
+  public precision?: number;
+  public puntoChofer?: PuntoMapa;
+  public mensajeUbicacion = '';
+  public errorUbicacion = '';
+  public cargandoUbicacion = false;
 
   constructor(
     private _choferService: ChoferService,
+    private _geolocationService: GeolocationService,
     private _changeDetectorRef: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
     if (!this.idChofer) {
-      console.error('No hay idChofer en sesión');
+      console.error('No hay idChofer en sesion');
       return;
     }
 
@@ -61,10 +72,40 @@ export class Chofer {
     this.loadViajes();
   }
 
+  ngAfterViewInit(): void {
+    const modal = document.getElementById('modalAgregarPasajero');
+
+    if (modal) {
+      this.modalAgregarPasajero = new bootstrap.Modal(modal);
+    }
+  }
+
   loadChofer(): void {
     this._choferService.getChoferById(this.idChofer).subscribe({
       next: (data) => {
         this.chofer = data;
+
+        if (
+          data.latitud !== null &&
+          data.latitud !== undefined &&
+          data.longitud !== null &&
+          data.longitud !== undefined
+        ) {
+          this.latitud = Number(data.latitud);
+          this.longitud = Number(data.longitud);
+          this.precision =
+            data.precision !== null && data.precision !== undefined
+              ? Number(data.precision)
+              : undefined;
+
+          this.puntoChofer = {
+            latitud: this.latitud,
+            longitud: this.longitud,
+            etiqueta: 'Mi ubicacion',
+            tipo: 'chofer'
+          };
+        }
+
         this._changeDetectorRef.detectChanges();
       },
       error: (err) => {
@@ -107,15 +148,6 @@ export class Chofer {
     });
   }
 
-  private getIdChoferSesion(): number {
-    const sesion = sessionStorage.getItem('usuario_perico');
-
-    if (!sesion) return 0;
-
-    const usuario = JSON.parse(sesion);
-    return Number(usuario.idChofer) || 0;
-  }
-
   cambiarDisponibilidad(activo: boolean): void {
     const nuevoEstado = activo ? 'DISPONIBLE' : 'DESCANSO';
 
@@ -137,6 +169,7 @@ export class Chofer {
       !this.viajeActual
     );
   }
+
   crearNuevoViaje(): void {
     if (!this.autoAsignado) {
       console.error('No hay auto asignado para crear el viaje');
@@ -182,6 +215,19 @@ export class Chofer {
     });
   }
 
+  finalizarViaje(): void {
+    if (!this.viajeActual) return;
+
+    this._choferService.cambiarEstadoViaje(this.viajeActual.idViaje, 'FINALIZADO').subscribe({
+      next: () => {
+        this.loadViajes();
+      },
+      error: (err) => {
+        console.error('Error al finalizar viaje:', err);
+      }
+    });
+  }
+
   cobrarConQr(reserva: any): void {
     if (reserva.estadoPago === 'PAGADO') return;
 
@@ -196,15 +242,37 @@ export class Chofer {
     });
   }
 
-  finalizarViaje(): void {
-    if (!this.viajeActual) return;
+  abrirModalAgregarPasajero(): void {
+    if (!this.viajeActual) {
+      console.error('No hay viaje actual para agregar pasajero');
+      return;
+    }
 
-    this._choferService.cambiarEstadoViaje(this.viajeActual.idViaje, 'FINALIZADO').subscribe({
+    if (this.viajeActual.asientosDisponibles > 0) {
+      this.modalAgregarPasajero.show();
+    } else {
+      console.error('No hay asientos disponibles para agregar pasajero');
+    }
+  }
+
+  confirmarAgregarPasajero(): void {
+    if (!this.viajeActual || this.viajeActual.asientosDisponibles <= 0) {
+      return;
+    }
+
+    const nuevosAsientos = this.viajeActual.asientosDisponibles - 1;
+
+    this._choferService.actualizarAsientosDisponibles(
+      this.viajeActual.idViaje,
+      nuevosAsientos
+    ).subscribe({
       next: () => {
         this.loadViajes();
+        (document.activeElement as HTMLElement)?.blur();
+        this.modalAgregarPasajero.hide();
       },
       error: (err) => {
-        console.error('Error al finalizar viaje:', err);
+        console.error(err);
       }
     });
   }
@@ -232,45 +300,46 @@ export class Chofer {
     });
   }
 
-  ngAfterViewInit(): void {
-    const modal = document.getElementById('modalAgregarPasajero');
+  enviarUbicacion(): void {
+    this.cargandoUbicacion = true;
+    this.mensajeUbicacion = '';
+    this.errorUbicacion = '';
 
-    if (modal) {
-      this.modalAgregarPasajero = new bootstrap.Modal(modal);
-    }
+    this._geolocationService.obtenerUbicacionActual()
+      .then((ubicacion) => {
+        this.publicarUbicacion(ubicacion);
+      })
+      .catch((error) => {
+        console.error(error);
+        this.errorUbicacion = 'No se pudo obtener la ubicacion del dispositivo.';
+        this.cargandoUbicacion = false;
+        this._changeDetectorRef.detectChanges();
+      });
   }
 
-  abrirModalAgregarPasajero(): void {
-    if (!this.viajeActual) {
-      console.error('No hay viaje actual para agregar pasajero');
-      return;
-    }
+  private publicarUbicacion(ubicacion: Coordenadas): void {
+    this.latitud = ubicacion.latitud;
+    this.longitud = ubicacion.longitud;
+    this.precision = ubicacion.precision;
 
-    if (this.viajeActual.asientosDisponibles > 0) {
-      this.modalAgregarPasajero.show();
-    } else {
-      console.error('No hay asientos disponibles para agregar pasajero');
-    }
-  }
+    this.puntoChofer = {
+      latitud: ubicacion.latitud,
+      longitud: ubicacion.longitud,
+      etiqueta: 'Mi ubicacion',
+      tipo: 'chofer'
+    };
 
-  confirmarAgregarPasajero(): void {
-    if (!this.viajeActual || this.viajeActual.asientosDisponibles <= 0) {
-      return;
-    }
-
-    const nuevosAsientos = this.viajeActual.asientosDisponibles - 1;
-
-    this._choferService.actualizarAsientosDisponibles(
-      this.viajeActual.idViaje,
-      nuevosAsientos
-    ).subscribe({
-      next: (response: any) => {
-        this.loadViajes();
-        (document.activeElement as HTMLElement)?.blur();
-        this.modalAgregarPasajero.hide();
+    this._choferService.actualizarUbicacion(this.idChofer, ubicacion).subscribe({
+      next: () => {
+        this.mensajeUbicacion = 'Ubicacion enviada correctamente.';
+        this.cargandoUbicacion = false;
+        this._changeDetectorRef.detectChanges();
       },
-      error: err => {
-        console.error(err);
+      error: (error) => {
+        console.error(error);
+        this.errorUbicacion = error.error?.msg || 'Error enviando ubicacion al backend.';
+        this.cargandoUbicacion = false;
+        this._changeDetectorRef.detectChanges();
       }
     });
   }
@@ -281,6 +350,15 @@ export class Chofer {
 
   getEstadoAuto(): string {
     return this.autoAsignado?.estado || this.autoAsignado?.estadoAuto || 'SIN AUTO';
+  }
+
+  private getIdChoferSesion(): number {
+    const sesion = sessionStorage.getItem('usuario_perico');
+
+    if (!sesion) return 0;
+
+    const usuario = JSON.parse(sesion);
+    return Number(usuario.idChofer) || 0;
   }
 
   private getFechaActual(): string {

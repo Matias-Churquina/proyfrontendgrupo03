@@ -15,6 +15,12 @@ export interface CrearViajeDto {
   idAuto: number;
 }
 
+export interface Coordenadas {
+  latitud: number;
+  longitud: number;
+  precision?: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -59,5 +65,15 @@ export class ChoferService {
 
   generarQrCobro(idReserva: number): Observable<any> {
     return this._http.post<any>(`${this.baseUrl}/reservas/${idReserva}/qr`, {});
+  }
+
+  actualizarUbicacion(
+    idChofer: number,
+    ubicacion: Coordenadas
+  ): Observable<{ status: string; msg: string; chofer: ChoferModel }> {
+    return this._http.patch<{ status: string; msg: string; chofer: ChoferModel }>(
+      `${this.baseUrl}/choferes/${idChofer}/ubicacion`,
+      ubicacion
+    );
   }
 }
