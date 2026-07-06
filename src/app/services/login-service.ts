@@ -43,6 +43,7 @@ export interface UsuarioSesion {
   nombre: string;
   apellido: string;
   email: string;
+  telefono: string;
   estadoChofer?: ChoferModel['estadoChofer'];
   estadoPasajero?: Pasajero['estadoPasajero'];
   estadoAdmin?: Admin['estadoAdmin'];

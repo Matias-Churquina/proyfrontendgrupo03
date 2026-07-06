@@ -144,9 +144,10 @@ export class Login implements OnInit {
     const nombre = res.nombre || res.usuario?.nombre;
     const apellido = res.apellido || res.usuario?.apellido;
     const email = res.email || res.usuario?.email;
+    const telefono = res.telefono || res.usuario?.telefono;
     const token = res.token;
 
-    if (!token || !rol || !idUsuario || !nombre || !apellido || !email) {
+    if (!token || !rol || !idUsuario || !nombre || !apellido || !email || !telefono) {
       this.mensajeError = 'La respuesta del servidor no contiene los datos de sesión necesarios.';
       this.cdr.detectChanges();
       return;
@@ -161,6 +162,7 @@ export class Login implements OnInit {
       nombre: nombre,
       apellido: apellido,
       email: email,
+      telefono: telefono,
       estadoChofer: res.estadoChofer || res.usuario?.perfilChofer?.estadoChofer,
       estadoPasajero: res.estadoPasajero || res.usuario?.perfilPasajero?.estadoPasajero,
       estadoAdmin: res.estadoAdmin || res.usuario?.perfilAdmin?.estadoAdmin,
