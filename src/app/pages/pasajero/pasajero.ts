@@ -151,6 +151,67 @@ export class PasajeroComponent implements OnInit {
     });
   }
 
+  pagarConMercadoPago(viaje: ViajeCard): void {
+    this.crearReserva(viaje, 'LINK');
+  }
+
+  reservarConEfectivo(viaje: ViajeCard): void {
+    this.crearReserva(viaje, 'EFECTIVO');
+  }
+
+  private crearReserva(viaje: ViajeCard, tipoCanal: 'LINK' | 'QR' | 'EFECTIVO'): void {
+    if (this.reservaActiva) {
+      this.mensaje = 'Ya tenes una reserva activa. Cancelala o finalizala antes de reservar otro viaje.';
+      return;
+    }
+
+    if (this.cantidadAsientos > viaje.asientosDisponibles) {
+      this.mensaje = 'No hay suficientes asientos disponibles.';
+      return;
+    }
+
+    const reserva: CrearReservaDto = {
+      idPasajero: this.idPasajero,
+      idViaje: viaje.idViaje,
+      cantidadAsientos: this.cantidadAsientos,
+      importeTotal: Number(viaje.tarifaPorAsiento) * this.cantidadAsientos,
+      estadoReserva: 'CONFIRMADA',
+      estadoPago: 'PENDIENTE'
+    };
+
+    this._pasajeroService.crearReserva(reserva, tipoCanal).subscribe({
+      next: (response) => {
+        const nuevosAsientos = viaje.asientosDisponibles - this.cantidadAsientos;
+
+        this._pasajeroService.actualizarAsientosDisponibles(
+          viaje.idViaje,
+          nuevosAsientos
+        ).subscribe({
+          next: () => {
+            this.loadPasajero();
+            this.buscarViajes();
+
+            if (tipoCanal === 'LINK' && response.url_pago) {
+              this.mensaje = 'Reserva creada. Redirigiendo a Mercado Pago...';
+              window.open(response.url_pago, '_blank');
+              return;
+            }
+
+            if (tipoCanal === 'EFECTIVO') {
+              this.mensaje = 'Reserva confirmada. El pago queda pendiente en efectivo.';
+              return;
+            }
+
+            this.mensaje = 'Reserva creada correctamente.';
+          }
+        });
+      },
+      error: (err) => {
+        this.mensaje = 'No se pudo crear la reserva.';
+        console.error(err);
+      }
+    });
+  }
   pagarEnEfectivo(viaje: ViajeCard): void {
     if (this.reservaActiva) {
       this.mensaje = 'Ya tenes una reserva activa.';

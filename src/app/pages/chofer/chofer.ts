@@ -234,10 +234,23 @@ export class Chofer implements OnInit {
     this._choferService.generarQrCobro(reserva.idReserva).subscribe({
       next: (response) => {
         this.qrCobro = response.qr_data;
-        this._changeDetectorRef.detectChanges();
       },
       error: (err) => {
         console.error('Error al generar QR:', err);
+      }
+    });
+  }
+
+  registrarPagoEfectivo(reserva: any): void {
+    if (reserva.estadoPago === 'PAGADO') return;
+
+    this._choferService.registrarPagoEfectivo(reserva.idReserva).subscribe({
+      next: () => {
+        reserva.estadoPago = 'PAGADO';
+        this.loadViajes();
+      },
+      error: (err) => {
+        console.error('Error al registrar pago en efectivo:', err);
       }
     });
   }
