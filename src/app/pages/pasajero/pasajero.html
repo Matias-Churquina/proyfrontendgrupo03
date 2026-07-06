@@ -239,9 +239,8 @@
             <div class="d-grid gap-2">
               <button
                 type="button"
-                class="btn btn-outline-primary w-100 select-button"
-                (click)="seleccionarViaje(viaje)"
-                [disabled]="!!reservaActiva || cantidadAsientos > viaje.asientosDisponibles"
+                class="btn btn-primary"
+                (click)="pagarConMercadoPago(viaje)"
               >
                 <i class="bi bi-credit-card me-2"></i>
                 Pagar con Mercado Pago
@@ -249,8 +248,8 @@
 
               <button
                 type="button"
-                class="btn btn-light border w-100 select-button"
-                [disabled]="!!reservaActiva || cantidadAsientos > viaje.asientosDisponibles"
+                class="btn btn-outline-primary"
+                (click)="reservarConEfectivo(viaje)"
               >
                 <i class="bi bi-cash-coin me-2"></i>
                 Pagar en efectivo
@@ -306,7 +305,7 @@
 
       <ng-template #sinHistorial>
         <div class="empty-state bg-white border rounded-3">
-          TodavÃ­a no tenÃ©s viajes en el historial.
+          Todavía no tenés viajes en el historial.
         </div>
       </ng-template>
     </section>

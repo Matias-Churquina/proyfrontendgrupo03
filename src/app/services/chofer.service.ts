@@ -67,6 +67,10 @@ export class ChoferService {
     return this._http.post<any>(`${this.baseUrl}/reservas/${idReserva}/qr`, {});
   }
 
+  registrarPagoEfectivo(idReserva: number): Observable<any> {
+    return this._http.put<any>(`${this.baseUrl}/reservas/${idReserva}/pago-efectivo`, {});
+  }
+
   actualizarUbicacion(
     idChofer: number,
     ubicacion: Coordenadas
