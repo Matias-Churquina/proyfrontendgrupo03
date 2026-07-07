@@ -27,20 +27,20 @@
 
   <section class="container pb-5">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4">
-      <div class="max-width-md">
-        <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold mb-2">BLOG Y NOVEDADES</span>
-        <h1 class="display-5 fw-bold text-dark mb-1">Guías de Viaje</h1>
-        <p class="text-muted lead mb-0">Enterate de las últimas noticias y aprendé los mejores consejos para conductores y pasajeros.</p>
-      </div>
-      
-      <div class="d-none d-md-flex gap-2 mt-4 mt-md-0">
-        <button class="btn btn-outline-primary rounded-circle d-flex justify-content-center align-items-center shadow-sm transition hover-scale" style="width: 45px; height: 45px;" (click)="desplazar(-1)">
-          <i class="bi bi-chevron-left fs-5"></i>
-        </button>
-        <button class="btn btn-outline-primary rounded-circle d-flex justify-content-center align-items-center shadow-sm transition hover-scale" style="width: 45px; height: 45px;" (click)="desplazar(1)">
-          <i class="bi bi-chevron-right fs-5"></i>
-        </button>
-      </div>
+        <div class="max-width-md text-center text-md-start">
+            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold mb-2">BLOG Y NOVEDADES</span>
+            <h1 class="display-5 fw-bold text-dark mb-1">Guías de Viaje</h1>
+            <p class="text-muted lead mb-0">Enterate de las últimas noticias y aprendé los mejores consejos para conductores y pasajeros.</p>
+        </div>
+        
+        <div class="d-flex gap-2 mt-4 justify-content-center justify-content-md-end">
+            <button class="btn btn-outline-primary rounded-circle d-flex justify-content-center align-items-center shadow-sm transition hover-scale" style="width: 45px; height: 45px;" (click)="desplazar(-1)">
+            <i class="bi bi-chevron-left fs-5"></i>
+            </button>
+            <button class="btn btn-outline-primary rounded-circle d-flex justify-content-center align-items-center shadow-sm transition hover-scale" style="width: 45px; height: 45px;" (click)="desplazar(1)">
+            <i class="bi bi-chevron-right fs-5"></i>
+            </button>
+        </div>
     </div>
 
     <div class="d-flex gap-4 pb-4 px-2 carrusel-moderno" #carrusel>
