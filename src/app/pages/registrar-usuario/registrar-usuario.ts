@@ -22,14 +22,18 @@ export class RegistrarUsuario implements OnInit {
   cargando = false;
   mensajeError: string | null = null;
   mensajeExito: string | null = null;
+  emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  phonePattern = /^\d{10,13}$/;
+  passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/;
+  showPassword = false;
 
   ngOnInit(): void {
     this.registroForm = this.fb.group({
       nombre: ['', Validators.required],
       apellido: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]],
-      telefono: ['', Validators.required],
-      passwordHash: ['', [Validators.required, Validators.minLength(6)]],
+      email: ['', [Validators.required, Validators.pattern(this.emailPattern)]],
+      telefono: ['', [Validators.required, Validators.pattern(this.phonePattern)]],
+      passwordHash: ['', [Validators.required, Validators.pattern(this.passwordPattern)]],
       licenciaConducir: [''], 
       fechaHabilitacion: ['']
     });
@@ -124,4 +128,9 @@ export class RegistrarUsuario implements OnInit {
     
     this.cdr.detectChanges();
   }
+
+  togglePassword() {
+    this.showPassword = !this.showPassword;
+  }
+
 }
