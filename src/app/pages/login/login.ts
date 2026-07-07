@@ -139,7 +139,8 @@ export class Login implements OnInit {
   }
 
   private procesarLoginExitoso(res: any): void {
-    const rol = res.rol || res.usuario?.rol;
+    // Extrae los datos de forma segura
+  const rol = res.rol || res.usuario?.rol;
     const idUsuario = res.idUsuario || res.usuario?.idUsuario;
     const nombre = res.nombre || res.usuario?.nombre;
     const apellido = res.apellido || res.usuario?.apellido;
@@ -147,27 +148,24 @@ export class Login implements OnInit {
     const telefono = res.telefono || res.usuario?.telefono;
     const token = res.token;
 
-    if (!token || !rol || !idUsuario || !nombre || !apellido || !email || !telefono) {
-      this.mensajeError = 'La respuesta del servidor no contiene los datos de sesión necesarios.';
-      this.cdr.detectChanges();
-      return;
-    }
+  // Validamos solo lo esencial para que la app funcione
+  if (!token || !rol || !idUsuario || !email) {
+    this.mensajeError = 'La respuesta del servidor no contiene los datos de sesión necesarios.';
+    console.error('Datos faltantes:', { token, rol, idUsuario, email }); // Útil para ver qué falta en consola
+    this.cdr.detectChanges();
+    return;
+  }
 
-    const usuarioSesion: UsuarioSesion = {
-      idUsuario: idUsuario,
-      idChofer: res.idChofer || res.usuario?.perfilChofer?.idChofer,
-      idPasajero: res.idPasajero || res.usuario?.perfilPasajero?.idPasajero,
-      idAdmin: res.idAdmin || res.usuario?.perfilAdmin?.idAdmin,
-      rol: rol,
-      nombre: nombre,
-      apellido: apellido,
-      email: email,
-      telefono: telefono,
-      estadoChofer: res.estadoChofer || res.usuario?.perfilChofer?.estadoChofer,
-      estadoPasajero: res.estadoPasajero || res.usuario?.perfilPasajero?.estadoPasajero,
-      estadoAdmin: res.estadoAdmin || res.usuario?.perfilAdmin?.estadoAdmin,
-      token: token,
-    };
+  // Construimos el objeto UsuarioSesion permitiendo nulos
+  const usuarioSesion: UsuarioSesion = {
+    idUsuario: idUsuario,
+    rol: rol,
+    nombre: nombre,
+    apellido: apellido,
+    email: email,
+    telefono: telefono,
+    token:  token,
+  };
 
     this.loginService.guardarSesion(usuarioSesion);
 

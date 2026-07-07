@@ -8,6 +8,7 @@ import { AdminPage } from './pages/admin/admin';
 import { BlogComponent } from './pages/blog.component/blog.component';
 import { NosotrosComponent } from './pages/nosotros.component/nosotros.component';
 import { PerfilComponent } from './pages/perfil.component/perfil.component';
+import { authGuard } from './services/Interceptor/auth.guard';
 
 
 export const routes: Routes = [
@@ -19,11 +20,11 @@ export const routes: Routes = [
 
     {path: 'login', component: Login},
 
-    {path: 'chofer', component: Chofer},
+    {path: 'chofer', component: Chofer, canActivate: [authGuard], data: { roles: ['CHOFER','ADMIN'] }},
 
-    {path: 'pasajero', component: PasajeroComponent},
+    {path: 'pasajero', component: PasajeroComponent, canActivate: [authGuard], data: { roles: ['PASAJERO','ADMIN'] }},
 
-    {path: 'admin', component: AdminPage},
+    {path: 'admin', component: AdminPage, canActivate: [authGuard], data: { roles: ['ADMIN'] }},
     
     {path: 'blogs', component: BlogComponent},
 
