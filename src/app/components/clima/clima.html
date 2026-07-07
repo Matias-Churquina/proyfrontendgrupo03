@@ -8,16 +8,16 @@
       <span class="weather-place">{{ ciudadActual.nombre }}</span>
 
       <ng-container *ngIf="!cargando && !error && clima; else estadoClima">
-        <strong>{{ temperatura }}°C</strong>
-        <small>{{ descripcion }} · ST {{ sensacionTermica }}°</small>
+        <strong>{{ temperatura }}&deg;C</strong>
+        <small>{{ descripcion }} | ST {{ sensacionTermica }}&deg;</small>
       </ng-container>
     </div>
   </div>
 
   <div class="weather-meta" *ngIf="!cargando && !error && clima">
-    <span title="Máxima y mínima">
+    <span title="Maxima y minima">
       <i class="bi bi-thermometer-half"></i>
-      {{ minima }}°/{{ maxima }}°
+      {{ minima }}&deg;/{{ maxima }}&deg;
     </span>
 
     <span title="Probabilidad de lluvia">
@@ -36,5 +36,5 @@
   <strong *ngIf="cargando">Cargando clima...</strong>
   <strong *ngIf="error">{{ error }}</strong>
   <small *ngIf="cargando">Consultando Open-Meteo</small>
-  <small *ngIf="error">Reintentá más tarde</small>
+  <small *ngIf="error">Reintenta mas tarde</small>
 </ng-template>

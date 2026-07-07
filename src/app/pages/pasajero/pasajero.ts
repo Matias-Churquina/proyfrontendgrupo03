@@ -10,6 +10,7 @@ import { MapaRutaComponent, PuntoMapa } from '../../components/mapa-ruta/mapa-ru
 import { SocketService } from '../../services/socket.service';
 import { ToastrService } from 'ngx-toastr';
 import * as bootstrap from 'bootstrap';
+import { ClimaComponent } from '../../components/clima/clima';
 
 type ViajeCard = Viaje & {
   idChofer?: number;
@@ -26,7 +27,7 @@ type ReservaHistorial = Reserva & {
 @Component({
   selector: 'app-pasajero',
   standalone: true,
-  imports: [CommonModule, FormsModule, MapaRutaComponent],
+  imports: [CommonModule, FormsModule, MapaRutaComponent, ClimaComponent],
   templateUrl: './pasajero.html',
   styleUrl: './pasajero.scss'
 })

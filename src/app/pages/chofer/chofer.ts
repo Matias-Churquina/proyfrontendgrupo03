@@ -11,6 +11,7 @@ import { GeolocationService } from '../../services/geolocalizacion.service';
 import { MapaRutaComponent, PuntoMapa } from '../../components/mapa-ruta/mapa-ruta';
 import { SocketService } from '../../services/socket.service';
 import { ToastrService } from 'ngx-toastr';
+import { ClimaComponent } from '../../components/clima/clima';
 
 type AutoBack = Auto & {
   estado?: 'DISPONIBLE' | 'EN_VIAJE' | 'EN_TALLER' | 'INACTIVO';
@@ -29,7 +30,7 @@ type ViajeBack = Viaje & {
 @Component({
   selector: 'app-chofer',
   standalone: true,
-  imports: [CommonModule, FormsModule, MapaRutaComponent],
+  imports: [CommonModule, FormsModule, MapaRutaComponent, ClimaComponent],
   templateUrl: './chofer.html',
   styleUrl: './chofer.scss'
 })

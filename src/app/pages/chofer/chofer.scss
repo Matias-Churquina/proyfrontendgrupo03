@@ -12,6 +12,14 @@
   color: #000;
 }
 
+.availability-heading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
 .availability-label {
   font-size: .8rem;
 }
@@ -191,6 +199,11 @@
 }
 
 @media (max-width: 575.98px) {
+  .availability-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .driver-actions,
   .vehicle-stats,
   .vehicle-actions {

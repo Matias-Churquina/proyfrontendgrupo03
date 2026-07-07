@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, Input, OnChanges, OnInit, SimpleChanges, ChangeDetectorRef} from '@angular/core';
 import { ClimaActual, ClimaService } from '../../services/clima.service';
 
 type CiudadClima = {
@@ -15,7 +15,7 @@ type CiudadClima = {
   templateUrl: './clima.html',
   styleUrl: './clima.scss'
 })
-export class ClimaComponent implements OnChanges {
+export class ClimaComponent implements OnChanges, OnInit {
   @Input() ciudad = 'San Salvador de Jujuy';
 
   public clima?: ClimaActual;
@@ -35,10 +35,16 @@ export class ClimaComponent implements OnChanges {
     }
   };
 
-  constructor(private _climaService: ClimaService) {}
+  constructor(private _climaService: ClimaService,
+              private _changeDetectorRef: ChangeDetectorRef
+  ) {}
+
+  ngOnInit(): void {
+    this.cargarClima();
+  }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['ciudad']) {
+    if (changes['ciudad'] && !changes['ciudad'].firstChange) {
       this.cargarClima();
     }
   }
@@ -105,6 +111,7 @@ export class ClimaComponent implements OnChanges {
       next: (data) => {
         this.clima = data;
         this.cargando = false;
+        this._changeDetectorRef.detectChanges();
       },
       error: (err) => {
         this.error = 'No se pudo cargar el clima.';
