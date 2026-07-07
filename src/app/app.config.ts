@@ -19,7 +19,7 @@ export const appConfig: ApplicationConfig = {
       progressBar: true,
       progressAnimation: 'increasing',
       closeButton: true
-    })
+    }),
     provideHttpClient(),
     provideCharts(withDefaultRegisterables())
   ]
