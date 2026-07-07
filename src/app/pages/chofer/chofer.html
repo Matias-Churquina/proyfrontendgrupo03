@@ -26,7 +26,7 @@
         <div class="row g-3 align-items-end">
           <div class="col-12 col-md-4">
             <label class="form-label text-start w-100">Origen</label>
-            <select class="form-select" [(ngModel)]="nuevoOrigen">
+            <select class="form-select" [(ngModel)]="nuevoOrigen" (ngModelChange)="onOrigenChange($event)">
               <option *ngFor="let ciudad of ciudades" [value]="ciudad">
                 {{ ciudad }}
               </option>
@@ -35,7 +35,7 @@
 
           <div class="col-12 col-md-4">
             <label class="form-label text-start w-100">Destino</label>
-            <select class="form-select" [(ngModel)]="nuevoDestino">
+            <select class="form-select" [(ngModel)]="nuevoDestino" (ngModelChange)="onDestinoChange($event)">
               <option *ngFor="let ciudad of ciudades" [value]="ciudad">
                 {{ ciudad }}
               </option>
@@ -123,7 +123,7 @@
               </small>
             </div>
 
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2">
               <button
                 *ngFor="let asiento of asientos; let i = index"
                 type="button"
@@ -140,6 +140,17 @@
                 </i>
 
               </button>
+
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-primary"
+                [disabled]="viajeActual.asientosDisponibles <= 0 || viajeActual.estadoViaje === 'FINALIZADO' || viajeActual.estadoViaje === 'CANCELADO'"
+                (click)="abrirModalAgregarPasajero()"
+              >
+                <i class="bi bi-person-plus me-1"></i>
+                Agregar pasajero manual
+              </button>
+
               <button
                 type="button"
                 class="btn btn-outline-primary"
@@ -221,18 +232,203 @@
             </div>
           </div>
 
-          <button
-            type="button"
-            class="btn btn-light border w-100 py-2 fw-semibold text-dark"
-            (click)="toggleHistorial()"
-          >
-            <i class="bi bi-clock-history me-2"></i>
-            Ver Historial de Viajes
-          </button>
+          <div class="vehicle-actions d-grid gap-2">
+            <button
+              type="button"
+              class="btn btn-primary py-2 fw-semibold"
+              (click)="toggleGestionAutos()"
+            >
+              <i class="bi bi-car-front-fill me-2"></i>
+              Gestionar Autos
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-light border py-2 fw-semibold text-dark"
+              (click)="toggleHistorial()"
+            >
+              <i class="bi bi-clock-history me-2"></i>
+              Ver Historial de Viajes
+            </button>
+          </div>
         </div>
       </article>
     </div>
   </div>
+
+  <article
+    class="driver-card card-custom bg-white border rounded-3 mt-3 mt-md-4"
+    *ngIf="mostrarGestionAutos"
+  >
+    <div class="driver-card-header d-flex align-items-center justify-content-between px-3 px-md-4 py-3">
+      <h2 class="driver-card-title d-flex align-items-center gap-2 m-0">
+        <i class="bi bi-tools text-primary"></i>
+        Gestión de Autos
+      </h2>
+
+      <span class="badge text-bg-light border text-secondary">
+        {{ autosActivos.length }}/3 activos
+      </span>
+    </div>
+
+    <div class="card-body px-3 px-md-4 py-4">
+      <form class="auto-form mb-4" (ngSubmit)="guardarAuto()">
+        <div class="alert alert-warning py-2 mb-3" *ngIf="autosActivos.length >= 3 && !autoEditandoId">
+          Ya tenes 3 autos activos. Da de baja uno para registrar otro.
+        </div>
+
+        <div class="row g-3 align-items-end">
+          <div class="col-12 col-md-2">
+            <label class="form-label">Patente</label>
+            <input
+              type="text"
+              class="form-control"
+              name="patente"
+              [(ngModel)]="autoForm.patente"
+              placeholder="ABC123"
+              [disabled]="guardandoAuto"
+              required
+            />
+          </div>
+
+          <div class="col-12 col-md-2">
+            <label class="form-label">Marca</label>
+            <input
+              type="text"
+              class="form-control"
+              name="marca"
+              [(ngModel)]="autoForm.marca"
+              placeholder="Toyota"
+              [disabled]="guardandoAuto"
+              required
+            />
+          </div>
+
+          <div class="col-12 col-md-2">
+            <label class="form-label">Modelo</label>
+            <input
+              type="text"
+              class="form-control"
+              name="modelo"
+              [(ngModel)]="autoForm.modelo"
+              placeholder="Etios"
+              [disabled]="guardandoAuto"
+              required
+            />
+          </div>
+
+          <div class="col-12 col-md-2">
+            <label class="form-label">Capacidad</label>
+            <input
+              type="number"
+              class="form-control"
+              name="capacidadAsientos"
+              [(ngModel)]="autoForm.capacidadAsientos"
+              min="1"
+              max="8"
+              [disabled]="guardandoAuto"
+              required
+            />
+          </div>
+
+          <div class="col-12 col-md-2">
+            <label class="form-label">Estado</label>
+            <select
+              class="form-select"
+              name="estado"
+              [(ngModel)]="autoForm.estado"
+              [disabled]="guardandoAuto"
+            >
+              <option *ngFor="let estado of estadosAuto" [value]="estado">
+                {{ estado }}
+              </option>
+            </select>
+          </div>
+
+          <div class="col-12 col-md-2 d-grid gap-2">
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="guardandoAuto || !puedeDarAltaAuto"
+            >
+              <i class="bi" [ngClass]="autoEditandoId ? 'bi-save' : 'bi-plus-circle'"></i>
+              {{ guardandoAuto ? 'Guardando...' : (autoEditandoId ? 'Guardar' : 'Dar de alta') }}
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-light border"
+              *ngIf="autoEditandoId"
+              (click)="cancelarEdicionAuto()"
+            >
+              Cancelar
+            </button>
+          </div>
+        </div>
+      </form>
+
+      <div class="table-responsive" *ngIf="autos.length > 0; else sinAutosChofer">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Patente</th>
+              <th>Marca</th>
+              <th>Modelo</th>
+              <th>Capacidad</th>
+              <th>Estado</th>
+              <th class="text-end">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let auto of autos">
+              <td class="fw-semibold">{{ auto.patente }}</td>
+              <td>{{ auto.marca }}</td>
+              <td>{{ auto.modelo }}</td>
+              <td>{{ auto.capacidadAsientos }}</td>
+              <td>
+                <select
+                  class="form-select form-select-sm auto-state-select"
+                  [ngModel]="getEstadoAutoItem(auto)"
+                  (ngModelChange)="cambiarEstadoAuto(auto, $any($event))"
+                >
+                  <option *ngFor="let estado of estadosAuto" [value]="estado">
+                    {{ estado }}
+                  </option>
+                </select>
+              </td>
+              <td class="text-end">
+                <div class="auto-row-actions">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-light border"
+                    (click)="editarAuto(auto)"
+                  >
+                    <i class="bi bi-pencil"></i>
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-danger"
+                    [disabled]="getEstadoAutoItem(auto) === 'INACTIVO'"
+                    (click)="darBajaAuto(auto)"
+                  >
+                    <i class="bi bi-arrow-down-circle me-1"></i>
+                    Baja
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #sinAutosChofer>
+        <div class="empty-map auto-empty-state">
+          Todavía no registraste autos.
+        </div>
+      </ng-template>
+    </div>
+  </article>
 
   <article
     class="driver-card card-custom bg-white border rounded-3 mt-3 mt-md-4"

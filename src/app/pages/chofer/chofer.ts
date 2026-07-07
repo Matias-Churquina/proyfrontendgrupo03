@@ -1,7 +1,7 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ChoferService, Coordenadas, CrearViajeDto } from '../../services/chofer.service';
+import { ChoferService, Coordenadas, CrearAutoDto, CrearViajeDto } from '../../services/chofer.service';
 import { ChoferModel } from '../../../models/chofer.model';
 import { Auto } from '../../../models/auto.model';
 import { Viaje } from '../../../models/viaje.model';
@@ -15,6 +15,8 @@ import { ToastrService } from 'ngx-toastr';
 type AutoBack = Auto & {
   estado?: 'DISPONIBLE' | 'EN_VIAJE' | 'EN_TALLER' | 'INACTIVO';
 };
+
+type EstadoAuto = 'DISPONIBLE' | 'EN_VIAJE' | 'EN_TALLER' | 'INACTIVO';
 
 type ViajeBack = Viaje & {
   idChofer?: number;
@@ -35,6 +37,17 @@ export class Chofer implements OnInit {
   public chofer?: ChoferModel;
   public autos: AutoBack[] = [];
   public autoAsignado?: AutoBack;
+  public mostrarGestionAutos = false;
+  public guardandoAuto = false;
+  public autoEditandoId?: number;
+  public estadosAuto: EstadoAuto[] = ['DISPONIBLE', 'EN_VIAJE', 'EN_TALLER', 'INACTIVO'];
+  public autoForm: CrearAutoDto = {
+    patente: '',
+    marca: '',
+    modelo: '',
+    capacidadAsientos: 4,
+    estado: 'DISPONIBLE'
+  };
   public viajeActual?: ViajeBack;
   public asientos = [1, 2, 3, 4];
   public viajesHistorial: ViajeBack[] = [];
@@ -72,9 +85,14 @@ export class Chofer implements OnInit {
   ngOnInit(): void {
     if (!this.idChofer) {
       console.error('No hay idChofer en sesion');
+      this.resolverChoferDesdeUsuarioSesion();
       return;
     }
 
+    this.cargarPanelChofer();
+  }
+
+  private cargarPanelChofer(): void {
     this.loadChofer();
     this.loadAutos();
     this.loadViajes();
@@ -132,13 +150,181 @@ export class Chofer implements OnInit {
     this._choferService.getAutosByChofer(this.idChofer).subscribe({
       next: (data) => {
         this.autos = data as AutoBack[];
-        this.autoAsignado = this.autos[0];
+        this.autoAsignado = this.autos.find((auto) => this.esAutoDisponible(auto)) || this.autos[0];
+
+        if (!this.autoAsignado) {
+          this.mostrarGestionAutos = true;
+          this._toastr.info('Registra un auto para poder crear viajes.');
+          this._changeDetectorRef.detectChanges();
+          return;
+        }
+
         this._changeDetectorRef.detectChanges();
       },
       error: (err) => {
         console.error('Error al cargar autos del chofer:', err);
+        this._toastr.error('Error al cargar autos del chofer.');
       }
     });
+  }
+
+  toggleGestionAutos(): void {
+    this.mostrarGestionAutos = !this.mostrarGestionAutos;
+  }
+
+  get autosActivos(): AutoBack[] {
+    return this.autos.filter((auto) => this.getEstadoAutoItem(auto) !== 'INACTIVO');
+  }
+
+  get puedeDarAltaAuto(): boolean {
+    return this.autosActivos.length < 3 || this.autoEditandoId !== undefined;
+  }
+
+  guardarAuto(): void {
+    const datosAuto = this.normalizarAutoForm();
+
+    if (!datosAuto) return;
+
+    if (!this.autoEditandoId && this.autosActivos.length >= 3) {
+      this._toastr.warning('Solo podes tener hasta 3 autos activos.');
+      return;
+    }
+
+    this.guardandoAuto = true;
+
+    if (this.autoEditandoId) {
+      this._choferService.actualizarAuto(this.autoEditandoId, datosAuto).subscribe({
+        next: () => {
+          this._toastr.success('Auto actualizado correctamente.');
+          this.finalizarGuardadoAuto();
+        },
+        error: (err) => {
+          this.guardandoAuto = false;
+          this._toastr.error(err.error?.msg || 'No se pudo actualizar el auto.');
+          console.error('Error al actualizar auto:', err);
+        }
+      });
+
+      return;
+    }
+
+    this._choferService.crearAuto(datosAuto).subscribe({
+      next: (response) => {
+        if (!response.auto?.idAuto) {
+          this._toastr.success('Auto registrado correctamente.');
+          this.finalizarGuardadoAuto();
+          return;
+        }
+
+        this._choferService.crearTurnoChofer({
+          idChofer: this.idChofer,
+          idAuto: response.auto.idAuto,
+          fecha: this.getFechaActual(),
+          horaInicio: '00:00:00',
+          horaFin: '23:59:59'
+        }).subscribe({
+          next: () => {
+            this._toastr.success('Auto registrado correctamente.');
+            this.finalizarGuardadoAuto();
+          },
+          error: (err) => {
+            this.guardandoAuto = false;
+            this._toastr.error('El auto se creo, pero no se pudo asociar al chofer.');
+            console.error('Error al asociar auto al chofer:', err);
+          }
+        });
+      },
+      error: (err) => {
+        this.guardandoAuto = false;
+        this._toastr.error(err.error?.msg || 'No se pudo registrar el auto.');
+        console.error('Error al registrar auto:', err);
+      }
+    });
+  }
+
+  editarAuto(auto: AutoBack): void {
+    this.autoEditandoId = auto.idAuto;
+    this.autoForm = {
+      patente: auto.patente || '',
+      marca: auto.marca || '',
+      modelo: auto.modelo || '',
+      capacidadAsientos: Number(auto.capacidadAsientos) || 4,
+      estado: this.getEstadoAutoItem(auto)
+    };
+    this.mostrarGestionAutos = true;
+  }
+
+  cancelarEdicionAuto(): void {
+    this.resetAutoForm();
+  }
+
+  cambiarEstadoAuto(auto: AutoBack, estado: EstadoAuto): void {
+    if (estado !== 'INACTIVO' && this.getEstadoAutoItem(auto) === 'INACTIVO' && this.autosActivos.length >= 3) {
+      this._toastr.warning('Solo podes tener hasta 3 autos activos.');
+      return;
+    }
+
+    this._choferService.cambiarEstadoAuto(auto.idAuto, estado).subscribe({
+      next: () => {
+        this._toastr.success('Estado del auto actualizado.');
+        this.loadAutos();
+      },
+      error: (err) => {
+        this._toastr.error(err.error?.msg || 'No se pudo cambiar el estado del auto.');
+        console.error('Error al cambiar estado del auto:', err);
+      }
+    });
+  }
+
+  darBajaAuto(auto: AutoBack): void {
+    this.cambiarEstadoAuto(auto, 'INACTIVO');
+  }
+
+  getEstadoAutoItem(auto: AutoBack): EstadoAuto {
+    return (auto.estado || auto.estadoAuto || 'DISPONIBLE') as EstadoAuto;
+  }
+
+  private finalizarGuardadoAuto(): void {
+    this.guardandoAuto = false;
+    this.resetAutoForm();
+    this.loadAutos();
+  }
+
+  private resetAutoForm(): void {
+    this.autoEditandoId = undefined;
+    this.autoForm = {
+      patente: '',
+      marca: '',
+      modelo: '',
+      capacidadAsientos: 4,
+      estado: 'DISPONIBLE'
+    };
+  }
+
+  private normalizarAutoForm(): CrearAutoDto | null {
+    const patente = this.autoForm.patente.trim().toUpperCase();
+    const marca = this.autoForm.marca.trim();
+    const modelo = this.autoForm.modelo.trim();
+    const capacidadAsientos = Number(this.autoForm.capacidadAsientos);
+    const estado = this.autoForm.estado || 'DISPONIBLE';
+
+    if (!patente || !marca || !modelo) {
+      this._toastr.warning('Completa patente, marca y modelo.');
+      return null;
+    }
+
+    if (!Number.isInteger(capacidadAsientos) || capacidadAsientos < 1) {
+      this._toastr.warning('La capacidad debe ser un numero entero mayor a 0.');
+      return null;
+    }
+
+    return {
+      patente,
+      marca,
+      modelo,
+      capacidadAsientos,
+      estado
+    };
   }
 
   loadViajes(): void {
@@ -149,6 +335,12 @@ export class Chofer implements OnInit {
         this.viajeActual = viajes.find((viaje) =>
           viaje.estadoViaje === 'ABIERTO' || viaje.estadoViaje === 'EN_CURSO'
         );
+
+        if (this.viajeActual?.reservas) {
+          this.viajeActual.reservas = this.viajeActual.reservas.filter((reserva) =>
+            reserva.estadoReserva !== 'CANCELADA'
+          );
+        }
 
         this.registrarEventosDeViajeActual();
         this.registrarEventosDeReservasDelViaje();
@@ -214,11 +406,13 @@ export class Chofer implements OnInit {
   crearNuevoViaje(): void {
     if (!this.autoAsignado) {
       console.error('No hay auto asignado para crear el viaje');
+      this._toastr.warning('Necesitas un auto disponible para crear el viaje.');
       return;
     }
 
     if (this.nuevoOrigen === this.nuevoDestino) {
       console.error('El origen y destino no pueden ser iguales');
+      this._toastr.warning('El origen y el destino no pueden ser iguales.');
       return;
     }
 
@@ -234,13 +428,31 @@ export class Chofer implements OnInit {
 
     this._choferService.crearViaje(nuevoViaje).subscribe({
       next: () => {
+        this._toastr.success('Viaje creado correctamente.');
         this.loadViajes();
         this.loadChofer();
       },
       error: (err) => {
+        this._toastr.error(err.error?.msg || 'Error al crear nuevo viaje.');
         console.error('Error al crear nuevo viaje:', err);
       }
     });
+  }
+
+  onOrigenChange(origen: string): void {
+    this.nuevoOrigen = origen;
+
+    if (this.nuevoDestino === origen) {
+      this.nuevoDestino = this.getCiudadAlternativa(origen);
+    }
+  }
+
+  onDestinoChange(destino: string): void {
+    this.nuevoDestino = destino;
+
+    if (this.nuevoOrigen === destino) {
+      this.nuevoOrigen = this.getCiudadAlternativa(destino);
+    }
   }
 
   iniciarViaje(): void {
@@ -251,16 +463,8 @@ export class Chofer implements OnInit {
       return;
     }
 
-    this.abrirModalConfirmacion({
-      titulo: 'Iniciar viaje',
-      mensaje: '¿Seguro que queres iniciar este viaje? A partir de este momento el viaje quedará en curso.',
-      textoConfirmar: 'Iniciar viaje',
-      icono: 'bi-play-fill',
-      variante: 'primary',
-      accion: () => this.confirmarInicioViaje()
-    });
+    this.confirmarInicioViaje();
   }
-
   finalizarViaje(): void {
     if (!this.viajeActual) return;
 
@@ -322,11 +526,12 @@ export class Chofer implements OnInit {
       return;
     }
 
-    if (this.viajeActual.asientosDisponibles > 0) {
-      this.modalAgregarPasajero.show();
-    } else {
-      console.error('No hay asientos disponibles para agregar pasajero');
+    if (this.viajeActual.asientosDisponibles <= 0) {
+      this._toastr.warning('No hay asientos disponibles para agregar pasajeros.');
+      return;
     }
+
+    this.confirmarAgregarPasajero();
   }
 
   public confirmacionModal: ConfirmacionModal = {
@@ -351,7 +556,12 @@ export class Chofer implements OnInit {
       'EN_CURSO'
     ).subscribe({
       next: () => {
+        if (this.viajeActual) {
+          this.viajeActual.estadoViaje = 'EN_CURSO';
+        }
+
         this._toastr.success('Viaje iniciado correctamente.');
+        this._changeDetectorRef.detectChanges();
         this.loadViajes();
       },
       error: (err) => {
@@ -382,12 +592,15 @@ export class Chofer implements OnInit {
       this.viajeActual.idViaje,
       nuevosAsientos
     ).subscribe({
-      next: () => {
+      next: (response: any) => {
+        this.viajeActual = response.viaje || this.viajeActual;
+        this._toastr.success('Pasajero manual agregado.');
         this.loadViajes();
         (document.activeElement as HTMLElement)?.blur();
-        this.modalAgregarPasajero.hide();
+        this.modalAgregarPasajero?.hide();
       },
       error: (err) => {
+        this._toastr.error('No se pudo agregar el pasajero manual.');
         console.error(err);
       }
     });
@@ -409,6 +622,8 @@ export class Chofer implements OnInit {
           this._toastr.warning('Viaje cancelado correctamente.');
         }
 
+        this.viajeActual = undefined;
+        this._changeDetectorRef.detectChanges();
         this.loadViajes();
       },
       error: (err) => {
@@ -493,13 +708,87 @@ export class Chofer implements OnInit {
     return this.autoAsignado?.estado || this.autoAsignado?.estadoAuto || 'SIN AUTO';
   }
 
+  private esAutoDisponible(auto: AutoBack): boolean {
+    return (auto.estado || auto.estadoAuto) === 'DISPONIBLE';
+  }
+
+  private getCiudadAlternativa(ciudad: string): string {
+    return this.ciudades.find((item) => item !== ciudad) || ciudad;
+  }
+
   private getIdChoferSesion(): number {
     const sesion = sessionStorage.getItem('usuarioSesion');
 
     if (!sesion) return 0;
 
-    const usuario = JSON.parse(sesion);
-    return Number(usuario.idChofer) || 0;
+    try {
+      const usuario = JSON.parse(sesion);
+      return Number(
+        usuario.idChofer ||
+        usuario.perfilChofer?.idChofer ||
+        usuario.usuario?.idChofer ||
+        usuario.usuario?.perfilChofer?.idChofer
+      ) || 0;
+    } catch (error) {
+      console.error('No se pudo leer la sesion del chofer:', error);
+      return 0;
+    }
+  }
+
+  private getIdUsuarioSesion(): number {
+    const sesion = sessionStorage.getItem('usuarioSesion');
+
+    if (!sesion) return 0;
+
+    try {
+      const usuario = JSON.parse(sesion);
+      return Number(usuario.idUsuario || usuario.usuario?.idUsuario) || 0;
+    } catch (error) {
+      console.error('No se pudo leer el usuario de la sesion:', error);
+      return 0;
+    }
+  }
+
+  private resolverChoferDesdeUsuarioSesion(): void {
+    const idUsuario = this.getIdUsuarioSesion();
+
+    if (!idUsuario) {
+      this._toastr.error('No se encontro el perfil de chofer en la sesion. Volve a iniciar sesion.');
+      return;
+    }
+
+    this._choferService.getChoferes().subscribe({
+      next: (choferes) => {
+        const chofer = choferes.find((item) => Number(item.idUsuario) === idUsuario);
+
+        if (!chofer?.idChofer) {
+          this._toastr.error('No se encontro el perfil de chofer asociado a tu usuario.');
+          return;
+        }
+
+        this.idChofer = chofer.idChofer;
+        this.actualizarIdChoferSesion(chofer.idChofer);
+        this.cargarPanelChofer();
+      },
+      error: (error) => {
+        console.error('Error resolviendo el perfil de chofer:', error);
+        this._toastr.error('No se pudo cargar el perfil de chofer.');
+      }
+    });
+  }
+
+  private actualizarIdChoferSesion(idChofer: number): void {
+    const sesion = sessionStorage.getItem('usuarioSesion');
+
+    if (!sesion) return;
+
+    try {
+      const usuario = JSON.parse(sesion);
+      usuario.idChofer = idChofer;
+      sessionStorage.setItem('usuarioSesion', JSON.stringify(usuario));
+    } catch (error) {
+      console.error('No se pudo actualizar la sesion del chofer:', error);
+    }
   }
 
   private getFechaActual(): string {

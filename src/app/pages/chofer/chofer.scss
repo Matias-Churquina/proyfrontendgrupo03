@@ -105,6 +105,10 @@
   grid-template-columns: 1fr 1fr;
 }
 
+.vehicle-actions {
+  grid-template-columns: 1fr 1fr;
+}
+
 .vehicle-stat {
   background: #f8f9fa;
 }
@@ -114,9 +118,29 @@
   color: #000;
 }
 
+.auto-form {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #dee2e6;
+}
+
+.auto-state-select {
+  min-width: 140px;
+}
+
+.auto-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+.auto-empty-state {
+  min-height: 140px;
+}
+
 @media (max-width: 575.98px) {
   .driver-actions,
-  .vehicle-stats {
+  .vehicle-stats,
+  .vehicle-actions {
     grid-template-columns: 1fr;
   }
 

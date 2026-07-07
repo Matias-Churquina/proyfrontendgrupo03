@@ -147,6 +147,12 @@ export class Login implements OnInit {
     const email = res.email || res.usuario?.email;
     const telefono = res.telefono || res.usuario?.telefono;
     const token = res.token;
+    const idChofer = res.idChofer || res.usuario?.idChofer || res.usuario?.perfilChofer?.idChofer;
+    const idPasajero = res.idPasajero || res.usuario?.idPasajero || res.usuario?.perfilPasajero?.idPasajero;
+    const idAdmin = res.idAdmin || res.usuario?.idAdmin || res.usuario?.perfilAdmin?.idAdmin;
+    const estadoChofer = res.estadoChofer || res.usuario?.perfilChofer?.estadoChofer;
+    const estadoPasajero = res.estadoPasajero || res.usuario?.perfilPasajero?.estadoPasajero;
+    const estadoAdmin = res.estadoAdmin || res.usuario?.perfilAdmin?.estadoAdmin;
 
   // Validamos solo lo esencial para que la app funcione
   if (!token || !rol || !idUsuario || !email) {
@@ -159,11 +165,17 @@ export class Login implements OnInit {
   // Construimos el objeto UsuarioSesion permitiendo nulos
   const usuarioSesion: UsuarioSesion = {
     idUsuario: idUsuario,
+    idChofer: idChofer,
+    idPasajero: idPasajero,
+    idAdmin: idAdmin,
     rol: rol,
     nombre: nombre,
     apellido: apellido,
     email: email,
     telefono: telefono,
+    estadoChofer: estadoChofer,
+    estadoPasajero: estadoPasajero,
+    estadoAdmin: estadoAdmin,
     token:  token,
   };
 

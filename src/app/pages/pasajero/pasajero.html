@@ -64,6 +64,10 @@
   </section>
 
   <main class="passenger-content">
+    <div class="alert alert-info border mb-3" *ngIf="mensaje">
+      {{ mensaje }}
+    </div>
+
     <section *ngIf="mostrarHistorial">
       <div class="history-header mb-3">
         <h2 class="section-title mb-0">Historial de Viajes</h2>
@@ -166,7 +170,7 @@
             type="button"
             class="btn btn-outline-danger"
             [disabled]="cancelandoReserva"
-            (click)="cancelarReservaActiva()"
+            (click)="abrirModalCancelarReserva()"
           >
             <i class="bi bi-x-circle me-2"></i>
             {{ cancelandoReserva ? 'Cancelando...' : 'Cancelar reserva' }}
@@ -342,3 +346,42 @@
     </section>
   </main>
 </section>
+
+<div
+  class="modal fade"
+  id="modalCancelarReserva"
+  tabindex="-1"
+  aria-labelledby="modalCancelarReservaLabel"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCancelarReservaLabel">
+          Cancelar reserva
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="mb-0">
+          ¿Seguro que queres cancelar esta reserva? Los asientos volveran a estar disponibles.
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light border" data-bs-dismiss="modal">
+          Volver
+        </button>
+        <button
+          type="button"
+          class="btn btn-danger"
+          [disabled]="cancelandoReserva"
+          (click)="confirmarCancelacionReserva()"
+        >
+          {{ cancelandoReserva ? 'Cancelando...' : 'Cancelar reserva' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
