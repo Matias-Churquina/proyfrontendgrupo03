@@ -137,6 +137,59 @@
   min-height: 140px;
 }
 
+.payment-list {
+  display: grid;
+  gap: .75rem;
+}
+
+.payment-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  padding: .75rem;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background: #f8f9fa;
+}
+
+.payment-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .5rem;
+}
+
+.qr-charge-box {
+  display: grid;
+  gap: .75rem;
+  padding: .9rem;
+  border: 1px solid #bfd7ff;
+  border-radius: 8px;
+  background: #f8fbff;
+}
+
+.qr-charge-image {
+  width: 220px;
+  max-width: 100%;
+  aspect-ratio: 1;
+  justify-self: center;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.qr-code-text {
+  display: block;
+  max-height: 96px;
+  overflow: auto;
+  padding: .75rem;
+  border-radius: 6px;
+  white-space: pre-wrap;
+  word-break: break-all;
+  background: #fff;
+}
+
 @media (max-width: 575.98px) {
   .driver-actions,
   .vehicle-stats,
@@ -151,6 +204,19 @@
 
   .location-actions {
     grid-template-columns: 1fr;
+  }
+
+  .payment-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .payment-actions {
+    justify-content: stretch;
+  }
+
+  .payment-actions .btn {
+    flex: 1 1 140px;
   }
 }
 

@@ -3,7 +3,7 @@ import { inject } from '@angular/core';
 import { LoginService } from '../../services/login-service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // Inyectamos tu servicio unificado
+  // Este interceptor corre antes de cada request HTTP.
   const loginService = inject(LoginService);
   
   // Obtenemos el token del sessionStorage

@@ -8,6 +8,7 @@ export class SocketService {
   private socket: Socket;
 
   constructor() {
+    // Socket.IO mantiene una conexion viva con el backend para recibir cambios en tiempo real.
     this.socket = io('http://localhost:3000', {
       transports: ['websocket']
     });
@@ -30,6 +31,7 @@ export class SocketService {
   }
 
   escuchar<T>(evento: string, callback: (data: T) => void): void {
+    // Los componentes se suscriben a eventos como pago_confirmado_reserva_15 o viaje_actualizado_3.
     this.socket.on(evento, callback);
   }
 

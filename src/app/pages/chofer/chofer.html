@@ -150,16 +150,64 @@
                 <i class="bi bi-person-plus me-1"></i>
                 Agregar pasajero manual
               </button>
+            </div>
 
-              <button
-                type="button"
-                class="btn btn-outline-primary"
-                *ngIf="reserva && reserva.estadoPago !== 'PAGADO'"
-                (click)="cobrarConQr(reserva)"
-              >
-                <i class="bi bi-qr-code me-2"></i>
-                Cobrar con QR
-              </button>
+            <div class="payment-list mt-3 pt-3 border-top" *ngIf="reservasPendientesPago.length > 0">
+              <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                <h6 class="mb-0 fw-semibold">
+                  <i class="bi bi-credit-card-2-front me-2"></i>
+                  Cobros pendientes
+                </h6>
+                <small class="text-muted">{{ reservasPendientesPago.length }} pendiente(s)</small>
+              </div>
+
+              <div class="payment-row" *ngFor="let reservaPendiente of reservasPendientesPago">
+                <div>
+                  <div class="fw-semibold">Reserva #{{ reservaPendiente.idReserva }}</div>
+                  <small class="text-muted">
+                    {{ reservaPendiente.cantidadAsientos }} asiento(s) · {{ reservaPendiente.estadoPago }}
+                  </small>
+                </div>
+
+                <div class="payment-actions">
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                    (click)="cobrarConQr(reservaPendiente)"
+                  >
+                    <i class="bi bi-qr-code me-1"></i>
+                    Cobrar QR
+                  </button>
+
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-success"
+                    (click)="registrarPagoEfectivo(reservaPendiente)"
+                  >
+                    <i class="bi bi-cash-coin me-1"></i>
+                    Efectivo
+                  </button>
+                </div>
+              </div>
+
+              <div class="qr-charge-box mt-3" *ngIf="qrCobro && reservaQrActiva">
+                <div class="d-flex align-items-start justify-content-between gap-3">
+                  <div>
+                    <div class="fw-semibold">QR para reserva #{{ reservaQrActiva.idReserva }}</div>
+                    <small class="text-muted">Mostrale este codigo al pasajero para cobrar la reserva.</small>
+                  </div>
+                  <span class="badge text-bg-warning">Pendiente</span>
+                </div>
+
+                <img
+                  *ngIf="qrCobroImagen"
+                  class="qr-charge-image"
+                  [src]="qrCobroImagen"
+                  alt="QR de cobro"
+                >
+
+                <code class="qr-code-text" *ngIf="!qrCobroImagen">{{ qrCobro }}</code>
+              </div>
             </div>
           </div>
 

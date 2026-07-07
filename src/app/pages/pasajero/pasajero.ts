@@ -31,6 +31,7 @@ type ReservaHistorial = Reserva & {
   styleUrl: './pasajero.scss'
 })
 export class PasajeroComponent implements OnInit, AfterViewInit {
+  // Pantalla principal del pasajero: busca viajes, reserva, cancela y ve ubicacion/ruta.
   public pasajero?: Pasajero;
   public viajesDisponibles: ViajeCard[] = [];
   public historial: ReservaHistorial[] = [];
@@ -84,6 +85,7 @@ export class PasajeroComponent implements OnInit, AfterViewInit {
       next: (data: any) => {
         this.pasajero = data;
 
+        // La reserva activa es la que todavia no termino ni fue cancelada.
         this.reservaActiva = data.reservas?.find((reserva: ReservaHistorial) =>
           (
             reserva.estadoReserva === 'PENDIENTE' ||
@@ -112,6 +114,7 @@ export class PasajeroComponent implements OnInit, AfterViewInit {
       this.mensaje = '';
     }
 
+    // El service llama a /api/viajes/disponibles y el backend filtra por recorrido/asientos.
     this._pasajeroService.getViajesDisponibles(this.origen, this.destino).subscribe({
       next: (data) => {
         this.viajesDisponibles = data as ViajeCard[];
@@ -154,6 +157,7 @@ export class PasajeroComponent implements OnInit, AfterViewInit {
       return;
     }
 
+    // Esta estructura coincide con el modelo Reserva del backend.
     const reserva: CrearReservaDto = {
       idPasajero: this.idPasajero,
       idViaje: viaje.idViaje,
@@ -412,8 +416,10 @@ export class PasajeroComponent implements OnInit, AfterViewInit {
 
     if (!idReserva || !idViaje) return;
 
+    // Eventos por reserva: solo afectan al pasajero que tiene esa reserva activa.
     this.escucharEvento<any>(`pago_confirmado_reserva_${idReserva}`, (data) => {
       this.mensaje = 'El pago de tu reserva fue confirmado.';
+      this._toastr.success('Pago confirmado con Mercado Pago.');
       this.loadPasajero();
     });
 
@@ -487,6 +493,7 @@ export class PasajeroComponent implements OnInit, AfterViewInit {
 
   private registrarEventosDeViajesDisponibles(): void {
     this.viajesDisponibles.forEach((viaje) => {
+      // Eventos por viaje: actualizan asientos/estado en las tarjetas disponibles.
       this.escucharEvento<any>(`asientos_actualizados_viaje_${viaje.idViaje}`, (data) => {
         this.actualizarAsientosEnListado(data.idViaje, data.asientosDisponibles);
       });
@@ -498,7 +505,7 @@ export class PasajeroComponent implements OnInit, AfterViewInit {
           viajeEncontrado.estadoViaje = data.estadoViaje;
         }
 
-        if (data.estadoViaje !== 'ABIERTO') {
+        if (data.estadoViaje !== 'ABIERTO' && data.estadoViaje !== 'EN_CURSO') {
           this.viajesDisponibles = this.viajesDisponibles.filter(v => v.idViaje !== data.idViaje);
         }
 

@@ -45,6 +45,7 @@ export class ChoferService {
 
   constructor(private _http: HttpClient) {}
 
+  // Este service concentra las llamadas HTTP que usa la pantalla del chofer.
   getChoferes(): Observable<ChoferModel[]> {
     return this._http.get<ChoferModel[]>(`${this.baseUrl}/choferes`);
   }
@@ -104,6 +105,7 @@ export class ChoferService {
   }
 
   generarQrCobro(idReserva: number): Observable<any> {
+    // Pide al backend un QR de Mercado Pago para una reserva pendiente.
     return this._http.post<any>(`${this.baseUrl}/reservas/${idReserva}/qr`, {});
   }
 

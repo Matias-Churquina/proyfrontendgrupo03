@@ -23,6 +23,7 @@ export class PasajeroService {
 
   constructor(private _http: HttpClient) {}
 
+  // Service de API para el panel del pasajero: viajes, reservas, historial y cancelacion.
   getPasajeroById(idPasajero: number): Observable<Pasajero> {
     return this._http.get<Pasajero>(`${this.baseUrl}/pasajeros/${idPasajero}`);
   }
@@ -32,6 +33,7 @@ export class PasajeroService {
   }
 
   getViajesDisponibles(origen: string, destino: string): Observable<Viaje[]> {
+    // El backend filtra por origen, destino, estado de viaje y asientos disponibles.
     const params = new HttpParams()
       .set('origen', origen)
       .set('destino', destino);
@@ -45,6 +47,7 @@ export class PasajeroService {
     reserva: CrearReservaDto,
     tipoCanal: 'LINK' | 'QR' | 'EFECTIVO'
   ): Observable<any> {
+    // tipoCanal decide si el backend genera link de Mercado Pago, QR o reserva en efectivo.
     return this._http.post<any>(
       `${this.baseUrl}/reservas?tipoCanal=${tipoCanal}`,
       reserva

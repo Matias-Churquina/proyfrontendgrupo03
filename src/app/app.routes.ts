@@ -20,6 +20,7 @@ export const routes: Routes = [
 
     {path: 'login', component: Login},
 
+    // authGuard revisa que exista sesion y que el rol permita entrar a cada panel.
     {path: 'chofer', component: Chofer, canActivate: [authGuard], data: { roles: ['CHOFER','ADMIN'] }},
 
     {path: 'pasajero', component: PasajeroComponent, canActivate: [authGuard], data: { roles: ['PASAJERO','ADMIN'] }},

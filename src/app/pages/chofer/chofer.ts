@@ -34,6 +34,7 @@ type ViajeBack = Viaje & {
   styleUrl: './chofer.scss'
 })
 export class Chofer implements OnInit {
+  // Pantalla principal del chofer: disponibilidad, viaje actual, autos, pagos y ubicacion.
   public chofer?: ChoferModel;
   public autos: AutoBack[] = [];
   public autoAsignado?: AutoBack;
@@ -55,14 +56,16 @@ export class Chofer implements OnInit {
   public reserva: Reserva | null = null;
 
   public ciudades = ['San Salvador de Jujuy', 'Perico'];
-  public nuevoOrigen = 'San Salvador de Jujuy';
-  public nuevoDestino = 'Perico';
+  public nuevoOrigen = 'Perico';
+  public nuevoDestino = 'San Salvador de Jujuy';
 
   public idChofer = this.getIdChoferSesion();
 
   private modalAgregarPasajero!: bootstrap.Modal;
   private modalConfirmacion?: bootstrap.Modal;
   public qrCobro?: string;
+  public qrCobroImagen?: string;
+  public reservaQrActiva?: any;
 
   public latitud?: number;
   public longitud?: number;
@@ -82,6 +85,15 @@ export class Chofer implements OnInit {
     private _toastr: ToastrService
   ) {}
 
+  get reservasPendientesPago(): any[] {
+    // Alimenta la lista "Cobros pendientes" del HTML.
+    return (this.viajeActual?.reservas || []).filter((reserva) =>
+      reserva.estadoPago !== 'PAGADO' &&
+      reserva.estadoReserva !== 'CANCELADA' &&
+      reserva.estadoReserva !== 'UTILIZADA'
+    );
+  }
+
   ngOnInit(): void {
     if (!this.idChofer) {
       console.error('No hay idChofer en sesion');
@@ -93,6 +105,7 @@ export class Chofer implements OnInit {
   }
 
   private cargarPanelChofer(): void {
+    // Carga datos independientes del panel. Cada metodo consume un endpoint distinto.
     this.loadChofer();
     this.loadAutos();
     this.loadViajes();
@@ -332,6 +345,7 @@ export class Chofer implements OnInit {
       next: (data) => {
         const viajes = data as ViajeBack[];
 
+        // En el panel se muestra como actual el viaje publicado o ya iniciado.
         this.viajeActual = viajes.find((viaje) =>
           viaje.estadoViaje === 'ABIERTO' || viaje.estadoViaje === 'EN_CURSO'
         );
@@ -416,6 +430,7 @@ export class Chofer implements OnInit {
       return;
     }
 
+    // El backend completa estado ABIERTO y asientos segun la capacidad del auto.
     const nuevoViaje: CrearViajeDto = {
       origen: this.nuevoOrigen,
       destino: this.nuevoDestino,
@@ -496,12 +511,21 @@ export class Chofer implements OnInit {
   cobrarConQr(reserva: any): void {
     if (reserva.estadoPago === 'PAGADO') return;
 
+    this.reservaQrActiva = reserva;
+    this.qrCobro = undefined;
+    this.qrCobroImagen = undefined;
+
+    // Pide al backend el QR dinamico de Mercado Pago para una reserva pendiente.
     this._choferService.generarQrCobro(reserva.idReserva).subscribe({
       next: (response) => {
         this.qrCobro = response.qr_data;
+        this.qrCobroImagen = response.qr_image;
+        this._toastr.info(`QR generado para la reserva #${reserva.idReserva}.`);
+        this._changeDetectorRef.detectChanges();
       },
       error: (err) => {
         console.error('Error al generar QR:', err);
+        this._toastr.error(err.error?.mensaje || 'No se pudo generar el QR de cobro.');
       }
     });
   }
@@ -512,10 +536,17 @@ export class Chofer implements OnInit {
     this._choferService.registrarPagoEfectivo(reserva.idReserva).subscribe({
       next: () => {
         reserva.estadoPago = 'PAGADO';
+        if (this.reservaQrActiva?.idReserva === reserva.idReserva) {
+          this.reservaQrActiva = undefined;
+          this.qrCobro = undefined;
+          this.qrCobroImagen = undefined;
+        }
+        this._toastr.success(`Pago registrado para la reserva #${reserva.idReserva}.`);
         this.loadViajes();
       },
       error: (err) => {
         console.error('Error al registrar pago en efectivo:', err);
+        this._toastr.error(err.error?.mensaje || 'No se pudo registrar el pago.');
       }
     });
   }
@@ -586,6 +617,7 @@ export class Chofer implements OnInit {
       return;
     }
 
+    // Pasajero manual: no crea usuario ni reserva, solo ocupa un asiento del viaje.
     const nuevosAsientos = this.viajeActual.asientosDisponibles - 1;
 
     this._choferService.actualizarAsientosDisponibles(
@@ -811,12 +843,14 @@ export class Chofer implements OnInit {
 
     if (!idViaje) return;
 
+    // Eventos especificos por idViaje para que varios choferes no mezclen actualizaciones.
     this.escucharEvento<any>(`reserva_creada_viaje_${idViaje}`, (data) => {
       this.loadViajes();
     });
 
     this.escucharEvento<any>(`pago_actualizado_viaje_${idViaje}`, (data) => {
       this.mensajeUbicacion = 'Se actualizo el pago de una reserva.';
+      this._toastr.success(`Pago confirmado de la reserva #${data.idReserva}.`);
       this.loadViajes();
     });
 
@@ -851,12 +885,22 @@ export class Chofer implements OnInit {
         reserva.estadoReserva = data.estadoReserva;
 
         this.mensajeUbicacion = `Pago confirmado de la reserva #${data.idReserva}.`;
+        this._toastr.success(`Pago confirmado de la reserva #${data.idReserva}.`);
+
+        if (this.reservaQrActiva?.idReserva === data.idReserva) {
+          this.reservaQrActiva = undefined;
+          this.qrCobro = undefined;
+          this.qrCobroImagen = undefined;
+        }
+
         this._changeDetectorRef.detectChanges();
       });
 
       this.escucharEvento<any>(`qr_generado_reserva_${reserva.idReserva}`, (data) => {
         if (data.qr_data) {
           this.qrCobro = data.qr_data;
+          this.qrCobroImagen = data.qr_image;
+          this.reservaQrActiva = reserva;
         }
 
         this._changeDetectorRef.detectChanges();

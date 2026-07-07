@@ -60,6 +60,7 @@ export class LoginService {
   private readonly USUARIO_KEY = 'usuarioSesion';
 
   public estaLogueadoSignal = signal<boolean>(!!sessionStorage.getItem('token'));
+  // Signals permiten que header/guards reaccionen cuando cambia la sesion.
   public usuarioSesionSignal = signal<UsuarioSesion | null>(
     sessionStorage.getItem('usuarioSesion') ? JSON.parse(sessionStorage.getItem('usuarioSesion')!) : null
   );
@@ -73,6 +74,7 @@ export class LoginService {
   }
 
   guardarSesion(datos: UsuarioSesion): void {
+    // sessionStorage conserva la sesion mientras la pestana del navegador siga abierta.
     sessionStorage.setItem(this.TOKEN_KEY, datos.token);
     sessionStorage.setItem(this.USUARIO_KEY, JSON.stringify(datos));
     this.estaLogueadoSignal.set(true);

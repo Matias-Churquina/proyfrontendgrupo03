@@ -22,6 +22,7 @@ export interface PuntoMapa {
   styleUrl: './mapa-ruta.scss'
 })
 export class MapaRutaComponent implements AfterViewInit, OnChanges, OnDestroy {
+  // Componente reutilizable: recibe puntos y una ruta, y Leaflet se encarga de dibujar el mapa.
   @Input() idMapa = 'mapa';
   @Input() chofer?: PuntoMapa;
   @Input() pasajero?: PuntoMapa;
@@ -48,6 +49,7 @@ export class MapaRutaComponent implements AfterViewInit, OnChanges, OnDestroy {
   private crearMapa(): void {
     if (this.mapa) return;
 
+    // Leaflet usa tiles publicos de OpenStreetMap como fondo del mapa.
     const centro: L.LatLngExpression = [-24.256, -65.211];
     this.mapa = L.map(this.idMapa, {
       zoomControl: true
@@ -61,6 +63,7 @@ export class MapaRutaComponent implements AfterViewInit, OnChanges, OnDestroy {
   private renderizar(): void {
     if (!this.mapa) return;
 
+    // Cada cambio de inputs vuelve a dibujar marcadores/ruta para evitar datos viejos.
     this.marcadorChofer?.remove();
     this.marcadorPasajero?.remove();
     this.rutaLayer?.remove();
@@ -100,6 +103,7 @@ export class MapaRutaComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     if (this.rutaLayer) {
+      // Si hay ruta calculada, el mapa se ajusta a esa ruta completa.
       this.mapa.fitBounds(this.rutaLayer.getBounds(), {
         padding: [28, 28],
         maxZoom: 15

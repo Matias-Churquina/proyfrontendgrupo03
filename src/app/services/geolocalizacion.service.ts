@@ -6,6 +6,7 @@ import { Coordenadas } from './chofer.service';
 })
 export class GeolocationService {
   obtenerUbicacionActual(): Promise<Coordenadas> {
+    // Usa la API nativa del navegador. El usuario debe permitir compartir ubicacion.
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
         reject(new Error('El navegador no soporta geolocalización.'));

@@ -12,6 +12,7 @@ import { LoginService, LoginPayload, UsuarioSesion } from '../../services/login-
   styleUrl: './login.scss',
 })
 export class Login implements OnInit {
+  // Login permite autenticacion tradicional y Google Identity Services.
   private fb = inject(FormBuilder);
   private loginService = inject(LoginService); 
   private router = inject(Router);
@@ -139,7 +140,7 @@ export class Login implements OnInit {
   }
 
   private procesarLoginExitoso(res: any): void {
-    // Extrae los datos de forma segura
+    // Extrae los datos de forma segura aunque el backend responda plano o anidado en usuario.
   const rol = res.rol || res.usuario?.rol;
     const idUsuario = res.idUsuario || res.usuario?.idUsuario;
     const nombre = res.nombre || res.usuario?.nombre;
