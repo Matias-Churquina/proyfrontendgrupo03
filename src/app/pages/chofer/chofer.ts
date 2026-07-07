@@ -9,6 +9,8 @@ import { Reserva } from '../../../models/reserva.model';
 import * as bootstrap from 'bootstrap';
 import { GeolocationService } from '../../services/geolocalizacion.service';
 import { MapaRutaComponent, PuntoMapa } from '../../components/mapa-ruta/mapa-ruta';
+import { SocketService } from '../../services/socket.service';
+import { ToastrService } from 'ngx-toastr';
 
 type AutoBack = Auto & {
   estado?: 'DISPONIBLE' | 'EN_VIAJE' | 'EN_TALLER' | 'INACTIVO';
@@ -19,6 +21,7 @@ type ViajeBack = Viaje & {
   idAuto?: number;
   auto?: AutoBack;
   reservas?: any[];
+  asientosDisponibles?: number;
 };
 
 @Component({
@@ -45,6 +48,7 @@ export class Chofer implements OnInit {
   public idChofer = this.getIdChoferSesion();
 
   private modalAgregarPasajero!: bootstrap.Modal;
+  private modalConfirmacion?: bootstrap.Modal;
   public qrCobro?: string;
 
   public latitud?: number;
@@ -55,10 +59,14 @@ export class Chofer implements OnInit {
   public errorUbicacion = '';
   public cargandoUbicacion = false;
 
+  private eventosEscuchados = new Set<string>();
+
   constructor(
     private _choferService: ChoferService,
     private _geolocationService: GeolocationService,
-    private _changeDetectorRef: ChangeDetectorRef
+    private _changeDetectorRef: ChangeDetectorRef,
+    private _socketService: SocketService,
+    private _toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
@@ -73,10 +81,16 @@ export class Chofer implements OnInit {
   }
 
   ngAfterViewInit(): void {
-    const modal = document.getElementById('modalAgregarPasajero');
+    const modalAgregar = document.getElementById('modalAgregarPasajero');
 
-    if (modal) {
-      this.modalAgregarPasajero = new bootstrap.Modal(modal);
+    if (modalAgregar) {
+      this.modalAgregarPasajero = new bootstrap.Modal(modalAgregar);
+    }
+
+    const modalConfirmacion = document.getElementById('modalConfirmacionAccion');
+
+    if (modalConfirmacion) {
+      this.modalConfirmacion = new bootstrap.Modal(modalConfirmacion);
     }
   }
 
@@ -136,6 +150,9 @@ export class Chofer implements OnInit {
           viaje.estadoViaje === 'ABIERTO' || viaje.estadoViaje === 'EN_CURSO'
         );
 
+        this.registrarEventosDeViajeActual();
+        this.registrarEventosDeReservasDelViaje();
+
         this.viajesHistorial = viajes.filter((viaje) =>
           viaje.estadoViaje === 'FINALIZADO' || viaje.estadoViaje === 'CANCELADO'
         );
@@ -168,6 +185,30 @@ export class Chofer implements OnInit {
       this.nuevoOrigen !== this.nuevoDestino &&
       !this.viajeActual
     );
+  }
+
+  get textoAccionCierreViaje(): string {
+    if (this.viajeActual?.estadoViaje === 'EN_CURSO') {
+      return 'Finalizar viaje';
+    }
+
+    return 'Cancelar viaje';
+  }
+
+  get iconoAccionCierreViaje(): string {
+    if (this.viajeActual?.estadoViaje === 'EN_CURSO') {
+      return 'bi-stop-circle';
+    }
+
+    return 'bi-x-circle';
+  }
+
+  get claseAccionCierreViaje(): string {
+    if (this.viajeActual?.estadoViaje === 'EN_CURSO') {
+      return 'btn-outline-dark';
+    }
+
+    return 'btn-outline-danger';
   }
 
   crearNuevoViaje(): void {
@@ -205,26 +246,46 @@ export class Chofer implements OnInit {
   iniciarViaje(): void {
     if (!this.viajeActual) return;
 
-    this._choferService.cambiarEstadoViaje(this.viajeActual.idViaje, 'EN_CURSO').subscribe({
-      next: () => {
-        this.loadViajes();
-      },
-      error: (err) => {
-        console.error('Error al iniciar viaje:', err);
-      }
+    if (this.viajeActual.estadoViaje !== 'ABIERTO') {
+      this._toastr.warning('Solo se puede iniciar un viaje abierto.');
+      return;
+    }
+
+    this.abrirModalConfirmacion({
+      titulo: 'Iniciar viaje',
+      mensaje: '¿Seguro que queres iniciar este viaje? A partir de este momento el viaje quedará en curso.',
+      textoConfirmar: 'Iniciar viaje',
+      icono: 'bi-play-fill',
+      variante: 'primary',
+      accion: () => this.confirmarInicioViaje()
     });
   }
 
   finalizarViaje(): void {
     if (!this.viajeActual) return;
 
-    this._choferService.cambiarEstadoViaje(this.viajeActual.idViaje, 'FINALIZADO').subscribe({
-      next: () => {
-        this.loadViajes();
-      },
-      error: (err) => {
-        console.error('Error al finalizar viaje:', err);
-      }
+    const estaEnCurso = this.viajeActual.estadoViaje === 'EN_CURSO';
+
+    if (estaEnCurso) {
+      this.abrirModalConfirmacion({
+        titulo: 'Finalizar viaje',
+        mensaje: '¿Seguro que queres finalizar este viaje? Esta acción marcará el viaje como completado.',
+        textoConfirmar: 'Finalizar viaje',
+        icono: 'bi-stop-circle',
+        variante: 'dark',
+        accion: () => this.confirmarCambioEstadoViaje('FINALIZADO')
+      });
+
+      return;
+    }
+
+    this.abrirModalConfirmacion({
+      titulo: 'Cancelar viaje',
+      mensaje: '¿Seguro que queres cancelar este viaje? El viaje dejará de estar disponible para pasajeros.',
+      textoConfirmar: 'Cancelar viaje',
+      icono: 'bi-x-circle',
+      variante: 'danger',
+      accion: () => this.confirmarCambioEstadoViaje('CANCELADO')
     });
   }
 
@@ -268,6 +329,48 @@ export class Chofer implements OnInit {
     }
   }
 
+  public confirmacionModal: ConfirmacionModal = {
+    titulo: '',
+    mensaje: '',
+    textoConfirmar: '',
+    icono: 'bi-question-circle',
+    variante: 'primary',
+    accion: null
+  };
+
+  abrirModalConfirmacion(config: ConfirmacionModal): void {
+    this.confirmacionModal = config;
+    this.modalConfirmacion?.show();
+  }
+
+  private confirmarInicioViaje(): void {
+    if (!this.viajeActual) return;
+
+    this._choferService.cambiarEstadoViaje(
+      this.viajeActual.idViaje,
+      'EN_CURSO'
+    ).subscribe({
+      next: () => {
+        this._toastr.success('Viaje iniciado correctamente.');
+        this.loadViajes();
+      },
+      error: (err) => {
+        this._toastr.error('Error al iniciar viaje.');
+        console.error('Error al iniciar viaje:', err);
+      }
+    });
+  }
+
+  confirmarAccionModal(): void {
+    const accion = this.confirmacionModal.accion;
+
+    this.modalConfirmacion?.hide();
+
+    if (accion) {
+      accion();
+    }
+  }
+
   confirmarAgregarPasajero(): void {
     if (!this.viajeActual || this.viajeActual.asientosDisponibles <= 0) {
       return;
@@ -286,6 +389,31 @@ export class Chofer implements OnInit {
       },
       error: (err) => {
         console.error(err);
+      }
+    });
+  }
+
+  private confirmarCambioEstadoViaje(nuevoEstado: 'FINALIZADO' | 'CANCELADO'): void {
+    if (!this.viajeActual) return;
+
+    const accionTexto = nuevoEstado === 'FINALIZADO' ? 'finalizar' : 'cancelar';
+
+    this._choferService.cambiarEstadoViaje(
+      this.viajeActual.idViaje,
+      nuevoEstado
+    ).subscribe({
+      next: () => {
+        if (nuevoEstado === 'FINALIZADO') {
+          this._toastr.success('Viaje finalizado correctamente.');
+        } else {
+          this._toastr.warning('Viaje cancelado correctamente.');
+        }
+
+        this.loadViajes();
+      },
+      error: (err) => {
+        this._toastr.error(`No se pudo ${accionTexto} el viaje.`);
+        console.error(`Error al ${accionTexto} viaje:`, err);
       }
     });
   }
@@ -366,7 +494,7 @@ export class Chofer implements OnInit {
   }
 
   private getIdChoferSesion(): number {
-    const sesion = sessionStorage.getItem('usuario_perico');
+    const sesion = sessionStorage.getItem('usuarioSesion');
 
     if (!sesion) return 0;
 
@@ -381,4 +509,83 @@ export class Chofer implements OnInit {
   private getHoraActual(): string {
     return new Date().toTimeString().slice(0, 8);
   }
+
+  private escucharEvento<T>(evento: string, callback: (data: T) => void): void {
+    if (this.eventosEscuchados.has(evento)) return;
+
+    this.eventosEscuchados.add(evento);
+    this._socketService.escuchar<T>(evento, callback);
+  }
+
+  private registrarEventosDeViajeActual(): void {
+    const idViaje = this.viajeActual?.idViaje;
+
+    if (!idViaje) return;
+
+    this.escucharEvento<any>(`reserva_creada_viaje_${idViaje}`, (data) => {
+      this.loadViajes();
+    });
+
+    this.escucharEvento<any>(`pago_actualizado_viaje_${idViaje}`, (data) => {
+      this.mensajeUbicacion = 'Se actualizo el pago de una reserva.';
+      this.loadViajes();
+    });
+
+    this.escucharEvento<any>(`asientos_actualizados_viaje_${idViaje}`, (data) => {
+      if (!this.viajeActual) return;
+
+      if (this.viajeActual.idViaje === data.idViaje) {
+        this.viajeActual.asientosDisponibles = data.asientosDisponibles;
+        this._toastr.info('Los asientos disponibles del viaje fueron actualizados.');
+        this.loadViajes();
+      }
+    });
+
+    this.escucharEvento<any>(`viaje_actualizado_${idViaje}`, (data) => {
+      if (!this.viajeActual) return;
+
+      if (this.viajeActual.idViaje === data.idViaje) {
+        this.viajeActual.estadoViaje = data.estadoViaje;
+        this._changeDetectorRef.detectChanges();
+      }
+
+      this.loadViajes();
+    });
+  }
+
+  private registrarEventosDeReservasDelViaje(): void {
+    const reservas = this.viajeActual?.reservas || [];
+
+    reservas.forEach((reserva) => {
+      this.escucharEvento<any>(`pago_confirmado_reserva_${reserva.idReserva}`, (data) => {
+        reserva.estadoPago = data.estadoPago;
+        reserva.estadoReserva = data.estadoReserva;
+
+        this.mensajeUbicacion = `Pago confirmado de la reserva #${data.idReserva}.`;
+        this._changeDetectorRef.detectChanges();
+      });
+
+      this.escucharEvento<any>(`qr_generado_reserva_${reserva.idReserva}`, (data) => {
+        if (data.qr_data) {
+          this.qrCobro = data.qr_data;
+        }
+
+        this._changeDetectorRef.detectChanges();
+      });
+
+      this.escucharEvento<any>(`reserva_cancelada_${reserva.idReserva}`, (data) => {
+        this._toastr.warning(`La reserva #${data.idReserva} fue cancelada.`);
+        this.loadViajes();
+      });
+    });
+  }
 }
+
+type ConfirmacionModal = {
+  titulo: string;
+  mensaje: string;
+  textoConfirmar: string;
+  icono: string;
+  variante: 'primary' | 'danger' | 'dark' | 'warning';
+  accion: (() => void) | null;
+};

@@ -64,10 +64,49 @@
   </section>
 
   <main class="passenger-content">
-    <div class="alert alert-info" *ngIf="mensaje">
-      {{ mensaje }}
-    </div>
+    <section *ngIf="mostrarHistorial">
+      <div class="history-header mb-3">
+        <h2 class="section-title mb-0">Historial de Viajes</h2>
 
+        <button type="button" class="btn btn-light border" (click)="volverAViajesDisponibles()">
+          <i class="bi bi-arrow-left me-2"></i>
+          Cerrar historial
+        </button>
+      </div>
+      <div class="table-responsive bg-white border rounded-3" *ngIf="historial.length > 0; else sinHistorial">
+        <table class="table align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Viaje</th>
+              <th>Recorrido</th>
+              <th>Asientos</th>
+              <th>Importe</th>
+              <th>Reserva</th>
+              <th>Pago</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let reserva of historial">
+              <td>#{{ reserva.idviaje }}</td>
+              <td>
+                {{ reserva.viaje?.origen }} a {{ reserva.viaje?.destino }}
+              </td>
+              <td>{{ reserva.cantidadAsientos }}</td>
+              <td>${{ reserva.importeTotal }}</td>
+              <td>{{ reserva.estadoReserva }}</td>
+              <td>{{ reserva.estadoPago }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <ng-template #sinHistorial>
+        <div class="empty-state bg-white border rounded-3">
+          Todavía no tenés viajes en el historial.
+        </div>
+      </ng-template>
+    </section>
     <section class="active-reservation mb-4" *ngIf="reservaActiva?.viaje as viajeActivo">
       <h2 class="section-title mb-3">Tu viaje reservado</h2>
 
@@ -89,6 +128,11 @@
         </div>
 
         <div class="active-trip-details">
+          <div>
+            <span class="trip-label">Chofer</span>
+            <p class="mb-0">{{ getNombreChoferReserva(viajeActivo) }}</p>
+          </div>
+
           <div>
             <span class="trip-label">Vehículo</span>
             <p class="mb-0">
@@ -115,6 +159,18 @@
             <span class="trip-label">Estado de pago</span>
             <p class="mb-0">{{ reservaActiva.estadoPago }}</p>
           </div>
+        </div>
+
+        <div class="active-trip-actions">
+          <button
+            type="button"
+            class="btn btn-outline-danger"
+            [disabled]="cancelandoReserva"
+            (click)="cancelarReservaActiva()"
+          >
+            <i class="bi bi-x-circle me-2"></i>
+            {{ cancelandoReserva ? 'Cancelando...' : 'Cancelar reserva' }}
+          </button>
         </div>
       </article>
     </section>
@@ -236,24 +292,43 @@
               {{ viaje.asientosDisponibles }} de {{ viaje.auto?.capacidadAsientos || 4 }} asientos disponibles
             </p>
 
-            <div class="d-grid gap-2">
-              <button
-                type="button"
-                class="btn btn-primary"
-                (click)="pagarConMercadoPago(viaje)"
-              >
-                <i class="bi bi-credit-card me-2"></i>
-                Pagar con Mercado Pago
-              </button>
+            <div class="payment-panel">
+              <div class="payment-summary">
+                <span>Total estimado</span>
+                <strong>${{ getImporteTotal(viaje) }}</strong>
+              </div>
 
-              <button
-                type="button"
-                class="btn btn-outline-primary"
-                (click)="reservarConEfectivo(viaje)"
-              >
-                <i class="bi bi-cash-coin me-2"></i>
-                Pagar en efectivo
-              </button>
+              <div class="payment-actions">
+                <button
+                  type="button"
+                  class="payment-option payment-option-primary"
+                  (click)="pagarConMercadoPago(viaje)"
+                >
+                  <span class="payment-icon">
+                    <i class="bi bi-credit-card"></i>
+                  </span>
+
+                  <span>
+                    <strong>Mercado Pago</strong>
+                    <small>Pago online inmediato</small>
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  class="payment-option"
+                  (click)="reservarConEfectivo(viaje)"
+                >
+                  <span class="payment-icon">
+                    <i class="bi bi-cash-coin"></i>
+                  </span>
+
+                  <span>
+                    <strong>Efectivo</strong>
+                    <small>Pagas al subir</small>
+                  </span>
+                </button>
+              </div>
             </div>
           </div>
         </article>
@@ -262,50 +337,6 @@
       <ng-template #sinViajes>
         <div class="empty-state bg-white border rounded-3">
           No hay viajes disponibles para ese recorrido.
-        </div>
-      </ng-template>
-    </section>
-
-    <section *ngIf="mostrarHistorial">
-      <div class="history-header mb-3">
-        <h2 class="section-title mb-0">Historial de Viajes</h2>
-
-        <button type="button" class="btn btn-light border" (click)="volverAViajesDisponibles()">
-          <i class="bi bi-arrow-left me-2"></i>
-          Volver a viajes disponibles
-        </button>
-      </div>
-      <div class="table-responsive bg-white border rounded-3" *ngIf="historial.length > 0; else sinHistorial">
-        <table class="table align-middle mb-0">
-          <thead>
-            <tr>
-              <th>Viaje</th>
-              <th>Recorrido</th>
-              <th>Asientos</th>
-              <th>Importe</th>
-              <th>Reserva</th>
-              <th>Pago</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <tr *ngFor="let reserva of historial">
-              <td>#{{ reserva.idviaje }}</td>
-              <td>
-                {{ reserva.viaje?.origen }} â†’ {{ reserva.viaje?.destino }}
-              </td>
-              <td>{{ reserva.cantidadAsientos }}</td>
-              <td>${{ reserva.importeTotal }}</td>
-              <td>{{ reserva.estadoReserva }}</td>
-              <td>{{ reserva.estadoPago }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <ng-template #sinHistorial>
-        <div class="empty-state bg-white border rounded-3">
-          Todavía no tenés viajes en el historial.
         </div>
       </ng-template>
     </section>
