@@ -1,0 +1,40 @@
+<aside class="weather-widget border">
+  <div class="weather-main">
+    <span class="weather-icon">
+      <i class="bi" [ngClass]="iconoClima"></i>
+    </span>
+
+    <div class="weather-copy">
+      <span class="weather-place">{{ ciudadActual.nombre }}</span>
+
+      <ng-container *ngIf="!cargando && !error && clima; else estadoClima">
+        <strong>{{ temperatura }}°C</strong>
+        <small>{{ descripcion }} · ST {{ sensacionTermica }}°</small>
+      </ng-container>
+    </div>
+  </div>
+
+  <div class="weather-meta" *ngIf="!cargando && !error && clima">
+    <span title="Máxima y mínima">
+      <i class="bi bi-thermometer-half"></i>
+      {{ minima }}°/{{ maxima }}°
+    </span>
+
+    <span title="Probabilidad de lluvia">
+      <i class="bi bi-droplet-half"></i>
+      {{ probabilidadLluvia }}%
+    </span>
+
+    <span title="Viento">
+      <i class="bi bi-wind"></i>
+      {{ clima.current.wind_speed_10m }} km/h
+    </span>
+  </div>
+</aside>
+
+<ng-template #estadoClima>
+  <strong *ngIf="cargando">Cargando clima...</strong>
+  <strong *ngIf="error">{{ error }}</strong>
+  <small *ngIf="cargando">Consultando Open-Meteo</small>
+  <small *ngIf="error">Reintentá más tarde</small>
+</ng-template>
