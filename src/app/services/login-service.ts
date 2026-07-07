@@ -6,6 +6,7 @@ import type { Admin } from '../../models/admin.model';
 import type { ChoferModel } from '../../models/chofer.model';
 import type { Pasajero } from '../../models/pasajero.model';
 import type { Usuario } from '../../models/usuario.model';
+import { API_CONFIG } from '../core/config/api.config';
 
 
 export interface LoginPayload {
@@ -54,7 +55,7 @@ export class LoginService {
   private http = inject(HttpClient);
   private router = inject(Router);
   
-  private apiUrl = 'http://localhost:3000/api/usuarios'; 
+  private apiUrl = `${API_CONFIG.apiBaseUrl}/usuarios`;
 
   private readonly TOKEN_KEY = 'token';
   private readonly USUARIO_KEY = 'usuarioSesion';

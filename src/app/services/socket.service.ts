@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { io, Socket } from 'socket.io-client';
+import { API_CONFIG } from '../core/config/api.config';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,7 @@ export class SocketService {
 
   constructor() {
     // Socket.IO mantiene una conexion viva con el backend para recibir cambios en tiempo real.
-    this.socket = io('http://localhost:3000', {
+    this.socket = io(API_CONFIG.socketUrl, {
       transports: ['websocket']
     });
   }

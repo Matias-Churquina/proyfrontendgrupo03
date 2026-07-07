@@ -4,6 +4,7 @@ import { Observable } from 'rxjs';
 import { ChoferModel } from '../../models/chofer.model';
 import { Auto } from '../../models/auto.model';
 import { Viaje } from '../../models/viaje.model';
+import { API_CONFIG } from '../core/config/api.config';
 
 export interface CrearViajeDto {
   origen: string;
@@ -41,7 +42,7 @@ export interface CrearTurnoChoferDto {
   providedIn: 'root'
 })
 export class ChoferService {
-  private baseUrl = 'http://localhost:3000/api';
+  private baseUrl = API_CONFIG.apiBaseUrl;
 
   constructor(private _http: HttpClient) {}
 

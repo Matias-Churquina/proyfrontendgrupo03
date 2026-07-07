@@ -5,6 +5,7 @@ import { Pasajero } from '../../models/pasajero.model';
 import { Viaje } from '../../models/viaje.model';
 import { Reserva } from '../../models/reserva.model';
 import { ChoferModel } from '../../models/chofer.model';
+import { API_CONFIG } from '../core/config/api.config';
 
 export interface CrearReservaDto {
   idPasajero: number;
@@ -19,7 +20,7 @@ export interface CrearReservaDto {
   providedIn: 'root'
 })
 export class PasajeroService {
-  private baseUrl = 'http://localhost:3000/api';
+  private baseUrl = API_CONFIG.apiBaseUrl;
 
   constructor(private _http: HttpClient) {}
 

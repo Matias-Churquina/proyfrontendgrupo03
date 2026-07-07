@@ -437,7 +437,7 @@ export class Chofer implements OnInit {
       destino: this.nuevoDestino,
       fechaSalida: this.getFechaActual(),
       horaSalida: this.getHoraActual(),
-      tarifaPorAsiento: 1000,
+      tarifaPorAsiento: 1,
       idChofer: this.idChofer,
       idAuto: this.autoAsignado.idAuto
     };

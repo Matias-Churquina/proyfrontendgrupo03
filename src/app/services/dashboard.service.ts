@@ -1,6 +1,7 @@
 import { Service, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_CONFIG } from '../core/config/api.config';
 
 export interface DashboardGrupo {
   estado: string;
@@ -34,11 +35,11 @@ export interface DashboardData {
 
 @Service()
 export class DashboardService {
-private baseUrl = 'http://localhost:3000/api';
-private http = inject(HttpClient);
-private readonly apiUrl = `${this.baseUrl}/admins/dashboard`;
+  private baseUrl = API_CONFIG.apiBaseUrl;
+  private http = inject(HttpClient);
+  private readonly apiUrl = `${this.baseUrl}/admins/dashboard`;
 
-obtenerDashboard(): Observable<DashboardData> {
-return this.http.get<DashboardData>(this.apiUrl);
+  obtenerDashboard(): Observable<DashboardData> {
+    return this.http.get<DashboardData>(this.apiUrl);
   }
 }
