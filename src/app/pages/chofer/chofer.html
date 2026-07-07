@@ -155,21 +155,23 @@
           <div class="driver-actions d-grid gap-3 pt-3 border-top">
             <button
               type="button"
-              class="btn btn-primary btn-lg action-button"
+              class="btn btn-primary"
+              [disabled]="!viajeActual || viajeActual.estadoViaje !== 'ABIERTO'"
               (click)="iniciarViaje()"
-              [disabled]="viajeActual.estadoViaje === 'EN_CURSO'"
             >
               <i class="bi bi-play-fill me-2"></i>
-              Iniciar
+              Iniciar viaje
             </button>
 
             <button
               type="button"
-              class="btn btn-light border btn-lg action-button text-dark"
+              class="btn"
+              [ngClass]="claseAccionCierreViaje"
+              [disabled]="!viajeActual"
               (click)="finalizarViaje()"
             >
-              <i class="bi bi-stop-fill me-2"></i>
-              Finalizar
+              <i class="bi me-2" [ngClass]="iconoAccionCierreViaje"></i>
+              {{ textoAccionCierreViaje }}
             </button>
           </div>
         </div>
@@ -298,14 +300,6 @@
       </button>
     </div>
 
-    <div class="alert alert-success mt-3" *ngIf="mensajeUbicacion">
-      {{ mensajeUbicacion }}
-    </div>
-
-    <div class="alert alert-danger mt-3" *ngIf="errorUbicacion">
-      {{ errorUbicacion }}
-    </div>
-
     @if (puntoChofer) {
       <div class="mt-3">
         <app-mapa-ruta
@@ -351,6 +345,53 @@
           <button class="btn btn-primary" (click)="confirmarAgregarPasajero()">
             <i class="bi bi-check-lg me-2"></i>
             Agregar pasajero
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="modal fade" id="modalConfirmacionAccion" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content confirmation-modal">
+
+        <div class="modal-header border-0 pb-0">
+          <div class="confirmation-heading">
+            <span class="confirmation-icon" [ngClass]="'confirmation-' + confirmacionModal.variante">
+              <i class="bi" [ngClass]="confirmacionModal.icono"></i>
+            </span>
+
+            <div>
+              <h5 class="modal-title mb-1">
+                {{ confirmacionModal.titulo }}
+              </h5>
+              <p class="text-secondary mb-0">
+                {{ confirmacionModal.mensaje }}
+              </p>
+            </div>
+          </div>
+
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-footer border-0 pt-4">
+          <button
+            type="button"
+            class="btn btn-light border"
+            data-bs-dismiss="modal"
+          >
+            Volver
+          </button>
+
+          <button
+            type="button"
+            class="btn"
+            [ngClass]="'btn-' + confirmacionModal.variante"
+            (click)="confirmarAccionModal()"
+          >
+            <i class="bi me-2" [ngClass]="confirmacionModal.icono"></i>
+            {{ confirmacionModal.textoConfirmar }}
           </button>
         </div>
 
